@@ -22,6 +22,12 @@ assets/
   video/              Web-compressed videos (720p H.264)
 ```
 
+## Publishing updates
+```bash
+git add -A && git commit -m "Describe the change" && git push
+```
+When you change `styles.css` or `script.js`, bump the `?v=` number on their tags in `index.html` so browsers (especially phones) load the new files instead of a cached copy.
+
 ## Replace before launch
 - Replace the Kickstarter CTA placeholder `href="#"` with the live campaign URL.
 - Verify rights/permissions for third-party reaction videos, media screenshots and logos.
