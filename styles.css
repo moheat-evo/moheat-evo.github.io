@@ -218,3 +218,4 @@ section[id]{scroll-margin-top:70px}
 @media (max-width:900px){.kick-actions{margin-top:20px}}
 
 .hero-points li{align-items:start}.dot-temp{margin-top:6px}
+@media (max-width:620px){.press-card{grid-column:span 1}}
