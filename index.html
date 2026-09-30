@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#090708" />
+  <meta name="description" content="MoHeat Evo — directional warm and cool thermal audio. A joint research project by The University of Tokyo and Suntory." />
+  <title>MoHeat Evo — Feel Sound Through Temperature</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="nav-wrap">
+    <nav class="nav container">
+      <a class="brand" href="#top" aria-label="MoHeat Evo home">MoHeat <span>Evo</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="#presence">Experience</a>
+        <a href="#stories">Use cases</a>
+        <a href="#media">Media</a>
+        <a href="#research">Research</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <a class="nav-mobile-contact" href="#contact">Contact</a>
+      <a class="pill small" href="#back">Back the project <span>↗</span></a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="kick-hero section-dark">
+      <div class="container kick-hero-inner">
+        <div class="kick-title reveal">
+          <div>
+            <a class="jr-badge" href="#research"><b>JOINT RESEARCH</b>The University of Tokyo × Suntory</a>
+            <h1>Feel sound through <span class="temp-text">temperature.</span></h1>
+          </div>
+          <div class="kick-side">
+            <p>Directional thermal audio that adds warmth, coolness and physical presence to voices, characters and immersive media.</p>
+            <div class="kick-actions">
+              <a class="pill big" href="#back">Back this project <span>↗</span></a>
+              <a class="text-link" href="#film">Watch the film ▶</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="campaign-video reveal delay-1" id="film" aria-label="MoHeat Evo — SIGGRAPH Asia 2026 film">
+          <video
+            src="assets/video/siggraph-asia-2026.mp4"
+            poster="assets/posters/siggraph-hero.jpg"
+            controls playsinline preload="metadata"
+            title="MoHeat Evo — SIGGRAPH Asia 2026"></video>
+        </div>
+
+        <ul class="hero-points reveal delay-2">
+          <li><i class="dot-temp"></i><b>Warm + cool</b><span>LED heating and alcohol-mist cooling in one headset</span></li>
+          <li><i class="dot-temp"></i><b>Left / right independent</b><span>Each ear gets its own temperature, just like stereo sound</span></li>
+          <li><i class="dot-temp"></i><b>Synced to sound</b><span>Feedback follows voices, music, films and games in real time</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="presence" class="section-light section-pad">
+      <div class="container split feature-intro">
+        <div class="reveal">
+          <div class="eyebrow dark">THE MISSING PHYSICAL CUE</div>
+          <h2>The <span class="warm-text">presence</span> behind the voice.</h2>
+        </div>
+        <p class="section-copy reveal delay-1">When someone comes close, you feel their warmth. When they breathe softly, a cool touch. MoHeat Evo brings those missing cues to audio.</p>
+      </div>
+
+      <div class="container td reveal" id="thermalDemo">
+        <div class="td-head">
+          <div>
+            <div class="td-kicker"><i></i>INTERACTIVE DEMO</div>
+            <h3>Every whisper, <span class="warm-text">felt.</span></h3>
+          </div>
+        </div>
+
+        <div class="td-body">
+          <div class="td-stage">
+            <div class="td-aura td-aura-l"></div>
+            <div class="td-aura td-aura-r"></div>
+            <div class="td-rings"><span></span><span></span><span></span></div>
+
+            <div class="td-gauge td-gauge-l" data-ch="0">
+              <span class="td-gauge-side">LEFT EAR</span>
+              <b class="heat-value">Off</b>
+              <div class="td-meter"><i></i></div>
+            </div>
+
+            <div class="td-figure">
+              <svg class="head-svg" viewBox="0 0 160 200" aria-hidden="true">
+                <defs>
+                  <linearGradient id="hairGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#6e5357"/>
+                    <stop offset="1" stop-color="#3f2e31"/>
+                  </linearGradient>
+                </defs>
+                <path d="M8 200C8 162 38 146 80 146S152 162 152 200Z" fill="#2b2225" stroke="#ffffff22"/>
+                <rect x="62" y="104" width="36" height="50" rx="14" fill="#d8c6c0"/>
+                <ellipse cx="80" cy="66" rx="46" ry="54" fill="url(#hairGrad)" stroke="#ffffff26"/>
+              </svg>
+              <div class="ear left-ear"></div>
+              <div class="ear right-ear"></div>
+            </div>
+
+            <div class="td-gauge td-gauge-r" data-ch="1">
+              <span class="td-gauge-side">RIGHT EAR</span>
+              <b class="heat-value">Off</b>
+              <div class="td-meter"><i></i></div>
+            </div>
+
+            <div class="td-status"><i></i><span id="tdStatus">Waiting for audio</span></div>
+          </div>
+
+          <div class="td-panel">
+            <div class="td-field">
+              <div class="td-label"><span>01</span>Audio source</div>
+              <label class="td-drop" for="audioFile">
+                <span class="td-drop-icon">♪</span>
+                <span class="td-drop-text"><b id="audioName">Upload a stereo track</b><small>Binaural ASMR works best</small></span>
+              </label>
+              <input id="audioFile" type="file" accept="audio/*" hidden />
+            </div>
+
+            <div class="td-field">
+              <div class="td-label"><span>02</span>Temperature <em id="tempValue"></em></div>
+              <input id="tempRange" class="td-temp" type="range" min="-100" max="100" value="60" aria-label="Temperature feedback" />
+              <div class="td-scale"><span>Cool</span><span>Off</span><span>Warm</span></div>
+            </div>
+
+            <div class="td-field">
+              <div class="td-label"><span>03</span>Playback</div>
+              <div class="td-player">
+                <button id="playBtn" class="td-play" type="button" aria-label="Play" disabled>▶</button>
+                <input id="audioSeek" class="td-seek" type="range" min="0" max="1000" value="0" aria-label="Seek" disabled />
+                <span id="audioTime" class="td-time">0:00</span>
+              </div>
+              <audio id="audioPlayer"></audio>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="stories" class="section-peach section-pad">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <div class="eyebrow dark">BUILT FOR THE CONTENT PEOPLE LOVE</div>
+            <h2>Made for the voices fans <span class="warm-text">already love.</span></h2>
+          </div>
+          <p>Temperature for the audio people already listen to every day.</p>
+        </div>
+        <div class="story-grid">
+          <article class="story-card idol reveal"><div class="story-media"><img src="assets/images/use-idols.jpg" alt="A singer on stage reaching toward a listener wearing glowing MoHeat Evo headphones" loading="lazy" width="768" height="1152"><div class="shade"></div></div><div class="story-content"><span class="story-num">01</span><h3>Idols & Fan Content</h3><p>Close-mic messages, fan-club audio and live moments that feel physically present.</p></div></article>
+          <article class="story-card character reveal delay-1"><div class="story-media"><img src="assets/images/use-vtubers.jpg" alt="An anime cat-girl character reaching toward a listener wearing glowing MoHeat Evo headphones" loading="lazy" width="768" height="1152"><div class="shade"></div></div><div class="story-content"><span class="story-num">02</span><h3>VTubers & Characters</h3><p>Streams, characters and interactive stories that feel right beside you.</p></div></article>
+          <article class="story-card distance reveal delay-2"><div class="story-media"><img src="assets/images/use-calls.jpg" alt="A video call with a partner at night, seen by a listener wearing glowing MoHeat Evo headphones" loading="lazy" width="768" height="1152"><div class="shade"></div></div><div class="story-content"><span class="story-num">03</span><h3>Calls & Messages</h3><p>A subtle sense of warmth for calls with a partner, family or friends far away.</p></div></article>
+          <article class="story-card asmr reveal delay-3"><div class="story-media"><img src="assets/images/use-asmr.jpg" alt="An ASMR artist whispering into a studio microphone beside a listener wearing glowing MoHeat Evo headphones" loading="lazy" width="768" height="1152"><div class="shade"></div></div><div class="story-content"><span class="story-num">04</span><h3>ASMR & Audio Drama</h3><p>Whispers, breathing and binaural roleplay with a new physical layer.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-dark section-pad beyond">
+      <div class="container">
+        <div class="section-head light reveal">
+          <div><div class="eyebrow">AND IT GOES BEYOND VOICES</div><h2>One headset.<br>Every kind of <span class="temp-text">content.</span></h2></div>
+          <p>The same warm and cool cues — for everything you watch, play and hear.</p>
+        </div>
+        <div class="use-grid">
+          <article class="use-card music reveal">
+            <div class="use-media"><img src="assets/images/media-music.jpg" alt="A cheering crowd at a concert wearing glowing MoHeat Evo headphones" loading="lazy" width="1200" height="675"><span class="use-num">05</span></div>
+            <div class="use-body"><h3>Music & Live</h3><div class="use-cues"><span class="cue warm"><i></i>Big moments</span><span class="cue cool"><i></i>The drop</span></div></div>
+          </article>
+          <article class="use-card cinema reveal delay-1">
+            <div class="use-media"><img src="assets/images/media-movies.jpg" alt="An anime hero and a dragon watching a sunset, seen by a listener in MoHeat Evo headphones" loading="lazy" width="1200" height="675"><span class="use-num">06</span></div>
+            <div class="use-body"><h3>Movies & Anime</h3><div class="use-cues"><span class="cue warm"><i></i>Sunsets</span><span class="cue cool"><i></i>Rain</span></div></div>
+          </article>
+          <article class="use-card games reveal delay-2">
+            <div class="use-media"><img src="assets/images/media-games.jpg" alt="A fantasy battle with a dragon and fire, played with MoHeat Evo headphones" loading="lazy" width="1200" height="675"><span class="use-num">07</span></div>
+            <div class="use-body"><h3>Games</h3><div class="use-cues"><span class="cue warm"><i></i>Fire</span><span class="cue cool"><i></i>Ice</span></div></div>
+          </article>
+          <article class="use-card vr reveal delay-3">
+            <div class="use-media"><img src="assets/images/media-vr.jpg" alt="A VR user wearing MoHeat Evo headphones in a floating sci-fi world" loading="lazy" width="1200" height="675"><span class="use-num">08</span></div>
+            <div class="use-body"><h3>VR / XR</h3><div class="use-cues"><span class="cue warm"><i></i>Campfires</span><span class="cue cool"><i></i>Night wind</span></div></div>
+          </article>
+        </div>
+        <div class="partner-strip reveal">
+          <div>
+            <div class="eyebrow">FOR CREATORS, STUDIOS & PLATFORMS</div>
+            <h3>Make your content MoHeat-ready.</h3>
+            <p>We're opening early partnerships to add thermal cues to music, ASMR, streams, films and games.</p>
+          </div>
+          <a class="pill" href="#contact" data-topic="Partnership">Partner with us <span>↗</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="media" class="media section-pad">
+      <div class="container">
+        <div class="section-head light reveal">
+          <div><div class="eyebrow">SEEN, TESTED & EXPERIENCED</div><h2>Not just a concept.</h2></div>
+          <p>Shown at CES 2026 and SIGGRAPH Asia 2026, featured on NHK WORLD.</p>
+        </div>
+        <div class="media-grid">
+          <button class="vid-card feature reveal" type="button" data-src="assets/video/ces-2026.mp4" data-title="MoHeat Evo at CES 2026">
+            <video muted playsinline loop preload="none" poster="assets/posters/ces-2026.jpg" src="assets/video/ces-2026.mp4" aria-hidden="true"></video>
+            <div class="vid-top"><span class="tag">CES 2026</span><span class="vid-dur">0:56</span></div>
+            <div class="vid-bottom"><span class="play">▶</span><h3>MoHeat Evo at CES 2026</h3></div>
+          </button>
+          <button class="vid-card vertical reveal delay-1" type="button" data-src="assets/video/creator-reaction.mp4" data-title="Creator reaction">
+            <video muted playsinline loop preload="none" poster="assets/posters/creator-reaction.jpg" src="assets/video/creator-reaction.mp4" aria-hidden="true"></video>
+            <div class="vid-top"><span class="tag">CREATOR</span><span class="vid-dur">0:10</span></div>
+            <div class="vid-bottom"><span class="play">▶</span><h3>Creator reaction</h3></div>
+          </button>
+          <button class="vid-card reveal" type="button" data-src="assets/video/nhk-world.mp4" data-title="NHK WORLD feature">
+            <video muted playsinline loop preload="none" poster="assets/posters/nhk-world.jpg" src="assets/video/nhk-world.mp4" aria-hidden="true"></video>
+            <div class="vid-top"><span class="tag">NHK WORLD</span><span class="vid-dur">0:48</span></div>
+            <div class="vid-bottom"><span class="play">▶</span><h3>NHK WORLD feature</h3></div>
+          </button>
+          <button class="vid-card reveal delay-1" type="button" data-src="assets/video/ces-interview.mp4" data-title="CES 2026 TV interview">
+            <video muted playsinline loop preload="none" poster="assets/posters/ces-interview.jpg" src="assets/video/ces-interview.mp4" aria-hidden="true"></video>
+            <div class="vid-top"><span class="tag">CES 2026 · TV</span><span class="vid-dur">4:03</span></div>
+            <div class="vid-bottom"><span class="play">▶</span><h3>CES 2026 TV interview</h3></div>
+          </button>
+          <button class="vid-card reveal" type="button" data-src="assets/video/siggraph-asia-2026.mp4" data-title="SIGGRAPH Asia 2026">
+            <video muted playsinline loop preload="none" poster="assets/posters/siggraph-asia-2026.jpg" src="assets/video/siggraph-asia-2026.mp4" aria-hidden="true"></video>
+            <div class="vid-top"><span class="tag">SIGGRAPH ASIA 2026</span><span class="vid-dur">1:22</span></div>
+            <div class="vid-bottom"><span class="play">▶</span><h3>SIGGRAPH Asia 2026</h3></div>
+          </button>
+          <a class="press-card reveal delay-1" href="#contact" data-topic="Press & media">
+            <span class="press-kicker">PRESS & DEMOS</span>
+            <h3>Want to try MoHeat Evo or cover the story?</h3>
+            <p>Request a hands-on demo, interview or press kit.</p>
+            <span class="press-link">Get in touch <b>↗</b></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="research" class="research section-peach">
+      <div class="container reveal">
+        <div class="eyebrow dark">JOINT RESEARCH</div>
+        <div class="research-marks">
+          <span>The University of Tokyo</span>
+          <i>×</i>
+          <span>Suntory</span>
+        </div>
+        <p>MoHeat Evo is the result of joint research between The University of Tokyo and Suntory, exploring how temperature can make sound feel closer, warmer and more alive.</p>
+      </div>
+    </section>
+
+    <section id="back" class="cta section-dark">
+      <div class="cta-glow"></div>
+      <div class="container cta-inner reveal">
+        <div class="eyebrow">BACK MOHEAT EVO</div>
+        <h2>Bring the people, characters and worlds you love <span class="warm-text">a little closer.</span></h2>
+        <p>Join the first supporters and help turn thermal presence into a new layer of personal media.</p>
+        <div class="hero-actions center">
+          <a class="pill big" href="#" onclick="return false">Back this project on Kickstarter <span>↗</span></a>
+          <a class="text-link" href="#contact">Questions? Contact us ↓</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact section-light section-pad">
+      <div class="container contact-grid">
+        <div class="contact-copy reveal">
+          <div class="eyebrow dark">CONTACT US</div>
+          <h2>Let's <span class="warm-text">talk.</span></h2>
+          <p>Backing, partnerships, press or research — send us a message.</p>
+        </div>
+
+        <form class="contact-form reveal delay-1" id="contactForm" novalidate>
+          <fieldset class="cf-topics">
+            <legend>What's it about?</legend>
+            <label><input type="radio" name="topic" value="General" checked><span>General</span></label>
+            <label><input type="radio" name="topic" value="Backing the project"><span>Backing</span></label>
+            <label><input type="radio" name="topic" value="Partnership"><span>Partnership</span></label>
+            <label><input type="radio" name="topic" value="Press & media"><span>Press</span></label>
+            <label><input type="radio" name="topic" value="Research collaboration"><span>Research</span></label>
+          </fieldset>
+          <div class="cf-row">
+            <label class="cf-field"><span>Name</span><input name="name" type="text" autocomplete="name" required placeholder="Your name"></label>
+            <label class="cf-field"><span>Email</span><input name="email" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+          </div>
+          <label class="cf-field"><span>Message</span><textarea name="message" rows="5" required placeholder="Tell us what you have in mind…"></textarea></label>
+          <input type="text" name="_honey" class="cf-honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="cf-actions">
+            <button class="pill big" type="submit">Send message <span>↗</span></button>
+            <p class="cf-status" id="cfStatus" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <a class="brand" href="#top">MoHeat <span>Evo</span></a>
+      <p>A joint research project by The University of Tokyo × Suntory<br><small>© 2026 MoHeat Evo</small></p>
+      <div class="footer-links"><a href="#media">Media</a><a href="#research">Research</a><a href="#contact">Contact</a><a href="#back">Kickstarter</a></div>
+    </div>
+  </footer>
+
+  <dialog id="videoModal">
+    <button id="closeModal" aria-label="Close video">×</button>
+    <div class="modal-content">
+      <div class="modal-player"></div>
+      <h3 id="modalTitle"></h3>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
