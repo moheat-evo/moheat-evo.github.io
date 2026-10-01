@@ -34,7 +34,7 @@ assets/
 - The firmware in `arduino/` is kept out of the repo (`.gitignore`).
 
 ## Output test page
-`test.html` (+ `test.css`, `test.js`) sets each ear directly: Off / Heat / Cool at 0–100 % (slider or 25/50/75/100 presets), shown on a gauge with the resulting PWM.
+`test.html` (+ `test.css`, `test.js`) sets each ear directly with one bar: −100 % (max cool) … 0 (off) … +100 % (max warm), plus −100/−50/Off/+50/+100 presets; a gauge shows the % and resulting PWM.
 - **Output range**: Heat min–max and Cool min–max (PWM). 0 % is off; 1–100 % maps linearly to min–max. The range is stored in the browser and **shared with `control.html`**; a warning appears above the firmware maxima (heat 200, cool 80).
 - Sends `L<H|C><pwm> R<H|C><pwm>` (≤10×/s, on change); both off → `stop`. *Link left & right* mirrors one ear onto the other.
 - *Auto-off* (default 10 s) stops output after the last change; *All off* and *STOP* send `stop` immediately.

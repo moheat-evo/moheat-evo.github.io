@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="control.css?v=4" />
-  <link rel="stylesheet" href="test.css?v=2" />
+  <link rel="stylesheet" href="test.css?v=4" />
 </head>
 <body>
   <header class="bar">
@@ -40,13 +40,9 @@
           </svg>
           <div class="g-center"><b class="g-pct">0<small>%</small></b><span class="g-mode">Off</span></div>
         </div>
-        <div class="seg" role="radiogroup" aria-label="Left mode">
-          <button type="button" data-mode="off" class="on">Off</button>
-          <button type="button" data-mode="H">Heat</button>
-          <button type="button" data-mode="C">Cool</button>
-        </div>
-        <input class="pct" type="range" min="0" max="100" value="50" aria-label="Left output %" />
-        <div class="presets"><button type="button" data-p="25">25%</button><button type="button" data-p="50">50%</button><button type="button" data-p="75">75%</button><button type="button" data-p="100">100%</button></div>
+        <input class="bipolar" type="range" min="-100" max="100" value="0" step="1" aria-label="Left ear output, cool to warm" />
+        <div class="bi-scale"><span>Cool</span><span>Off</span><span>Warm</span></div>
+        <div class="presets"><button type="button" data-v="-100" class="c">−100%</button><button type="button" data-v="-50" class="c">−50%</button><button type="button" data-v="0">Off</button><button type="button" data-v="50" class="h">+50%</button><button type="button" data-v="100" class="h">+100%</button></div>
       </article>
 
       <figure class="head" aria-hidden="true">
@@ -70,13 +66,9 @@
           </svg>
           <div class="g-center"><b class="g-pct">0<small>%</small></b><span class="g-mode">Off</span></div>
         </div>
-        <div class="seg" role="radiogroup" aria-label="Right mode">
-          <button type="button" data-mode="off" class="on">Off</button>
-          <button type="button" data-mode="H">Heat</button>
-          <button type="button" data-mode="C">Cool</button>
-        </div>
-        <input class="pct" type="range" min="0" max="100" value="50" aria-label="Right output %" />
-        <div class="presets"><button type="button" data-p="25">25%</button><button type="button" data-p="50">50%</button><button type="button" data-p="75">75%</button><button type="button" data-p="100">100%</button></div>
+        <input class="bipolar" type="range" min="-100" max="100" value="0" step="1" aria-label="Right ear output, cool to warm" />
+        <div class="bi-scale"><span>Cool</span><span>Off</span><span>Warm</span></div>
+        <div class="presets"><button type="button" data-v="-100" class="c">−100%</button><button type="button" data-v="-50" class="c">−50%</button><button type="button" data-v="0">Off</button><button type="button" data-v="50" class="h">+50%</button><button type="button" data-v="100" class="h">+100%</button></div>
       </article>
     </section>
 
@@ -111,6 +103,6 @@
   </main>
 
   <script src="device.js?v=1"></script>
-  <script src="test.js?v=2"></script>
+  <script src="test.js?v=3"></script>
 </body>
 </html>

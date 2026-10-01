@@ -1,5 +1,5 @@
-// MoHeat Evo output test: each ear is Off / Heat / Cool at 0–100 %.
-// 0 % is off; 1–100 % maps linearly to the output range (min–max PWM), shared with control.html.
+// MoHeat Evo output test: one bar per ear, −100 % (max cool) … 0 (off) … +100 % (max warm).
+// 1–100 % maps linearly to the output range (min–max PWM), shared with control.html.
 // Sends "L<H|C><pwm> R<H|C><pwm>" (≤10×/s, only on change); both off → "stop".
 const DEFAULT_RANGE = { heatMin: 0, heatMax: 200, coolMin: 35, coolMax: 80 };   // firmware HOT_PWM_MIN/MAX, COLD_PWM_MIN/MAX
 const FIRMWARE_MAX = { heat: 200, cool: 80 };
@@ -48,64 +48,62 @@ Object.entries(rangeInputs).forEach(([k, el]) => el.addEventListener('change', (
 $('resetRange').addEventListener('click', () => { range = { ...DEFAULT_RANGE }; store.set('range', range); syncRange(); });
 
 // ---------- Channels ----------
-const toPwm = (mode, pct) => {
-  if (mode === 'off' || pct <= 0) return 0;
-  const [lo, hi] = mode === 'H' ? [range.heatMin, range.heatMax] : [range.coolMin, range.coolMax];
-  return Math.round(lo + (pct / 100) * (hi - lo));
+// v: −100 … 0 … +100  →  { mode: 'C' | 'H' | 'off', pwm }
+const toOut = (v) => {
+  const a = Math.abs(v);
+  if (a < 1) return { mode: 'off', pwm: 0 };
+  const [lo, hi] = v > 0 ? [range.heatMin, range.heatMax] : [range.coolMin, range.coolMax];
+  return { mode: v > 0 ? 'H' : 'C', pwm: Math.round(lo + (a / 100) * (hi - lo)) };
 };
 const channels = [...document.querySelectorAll('.ch')].map((el) => ({
-  el, side: el.dataset.side, mode: 'off', pct: 50,
-  seg: [...el.querySelectorAll('.seg button')], slider: el.querySelector('.pct'),
-  presets: [...el.querySelectorAll('.presets button')],
+  el, side: el.dataset.side, v: 0,
+  slider: el.querySelector('.bipolar'), presets: [...el.querySelectorAll('.presets button')],
   fill: el.querySelector('.g-fill'), pctEl: el.querySelector('.g-pct'), modeEl: el.querySelector('.g-mode'), pwmEl: el.querySelector('.ch-pwm'),
   cup: document.querySelector(el.dataset.side === 'L' ? '.cup-l' : '.cup-r'),
   aura: document.querySelector(el.dataset.side === 'L' ? '.aura-l' : '.aura-r'),
 }));
 const other = (ch) => channels.find((c) => c !== ch);
-const active = (ch) => ch.mode !== 'off' && toPwm(ch.mode, ch.pct) > 0;
+const active = (ch) => toOut(ch.v).pwm > 0;
 const command = () => (channels.some(active)
-  ? channels.map((c) => (active(c) ? `${c.side}${c.mode}${toPwm(c.mode, c.pct)}` : `${c.side}H0`)).join(' ')
+  ? channels.map((c) => { const o = toOut(c.v); return o.pwm > 0 ? `${c.side}${o.mode}${o.pwm}` : `${c.side}H0`; }).join(' ')
   : 'stop');
 
 function render(ch) {
-  const on = active(ch), pwm = toPwm(ch.mode, ch.pct);
-  ch.el.classList.toggle('heat', on && ch.mode === 'H');
-  ch.el.classList.toggle('cool', on && ch.mode === 'C');
-  ch.el.classList.toggle('off', ch.mode === 'off');
-  ch.seg.forEach((b) => b.classList.toggle('on', b.dataset.mode === ch.mode));
-  ch.presets.forEach((b) => b.classList.toggle('on', ch.mode !== 'off' && +b.dataset.p === ch.pct));
-  ch.slider.value = ch.pct;
-  const shown = ch.mode === 'off' ? 0 : ch.pct;
-  ch.pctEl.innerHTML = `${shown}<small>%</small>`;
-  ch.modeEl.textContent = !on ? 'Off' : ch.mode === 'H' ? 'Heat' : 'Cool';
-  ch.pwmEl.textContent = on ? `${ch.mode}${pwm}` : 'off';
-  ch.fill.style.strokeDashoffset = ARC * (1 - shown / 100);
-  const rgb = ch.mode === 'C' ? '95,178,255' : '255,122,92', a = on ? .25 + shown / 140 : 0;
-  ch.cup.style.background = on ? (ch.mode === 'C' ? '#cfe6ff' : '#ffd2c4') : '#eee8e7';
-  ch.cup.style.boxShadow = on ? `0 0 ${12 + shown / 3}px rgba(${rgb},${a})` : 'none';
+  const o = toOut(ch.v), on = o.pwm > 0, a = Math.abs(ch.v);
+  ch.el.classList.toggle('heat', on && o.mode === 'H');
+  ch.el.classList.toggle('cool', on && o.mode === 'C');
+  ch.el.classList.toggle('off', !on);
+  ch.presets.forEach((b) => b.classList.toggle('on', +b.dataset.v === ch.v));
+  ch.slider.value = ch.v;
+  ch.pctEl.innerHTML = `${on ? a : 0}<small>%</small>`;
+  ch.modeEl.textContent = !on ? 'Off' : o.mode === 'H' ? 'Heat' : 'Cool';
+  ch.pwmEl.textContent = on ? `${o.mode}${o.pwm}` : 'off';
+  ch.fill.style.strokeDashoffset = ARC * (1 - (on ? a : 0) / 100);
+  const rgb = o.mode === 'C' ? '95,178,255' : '255,122,92';
+  ch.cup.style.background = on ? (o.mode === 'C' ? '#cfe6ff' : '#ffd2c4') : '#eee8e7';
+  ch.cup.style.boxShadow = on ? `0 0 ${12 + a / 3}px rgba(${rgb},${.25 + a / 140})` : 'none';
   ch.aura.style.background = `rgb(${rgb})`;
-  ch.aura.style.opacity = on ? (shown / 100) * .55 : 0;
+  ch.aura.style.opacity = on ? (a / 100) * .55 : 0;
   previewEl.textContent = command();
 }
 
-function update(ch, patch, fromLink = false) {
-  Object.assign(ch, patch);
+function update(ch, v, fromLink = false) {
+  ch.v = Math.abs(v) < 4 ? 0 : Math.max(-100, Math.min(100, Math.round(v)));   // snap to Off near the centre
   render(ch);
-  if ($('link').checked && !fromLink) update(other(ch), patch, true);
+  if ($('link').checked && !fromLink) update(other(ch), ch.v, true);
   if (!fromLink) armAutoOff();
 }
 
 channels.forEach((ch) => {
-  ch.seg.forEach((b) => b.addEventListener('click', () => update(ch, { mode: b.dataset.mode })));
-  ch.slider.addEventListener('input', () => update(ch, { pct: +ch.slider.value }));
-  ch.presets.forEach((b) => b.addEventListener('click', () => update(ch, { pct: +b.dataset.p, ...(ch.mode === 'off' ? { mode: 'H' } : {}) })));
+  ch.slider.addEventListener('input', () => update(ch, +ch.slider.value));
+  ch.presets.forEach((b) => b.addEventListener('click', () => update(ch, +b.dataset.v)));
 });
-$('link').addEventListener('change', () => { if ($('link').checked) update(channels[1], { mode: channels[0].mode, pct: channels[0].pct }, true); });
+$('link').addEventListener('change', () => { if ($('link').checked) update(channels[1], channels[0].v, true); });
 syncRange();
 
 // ---------- Auto-off ----------
 function setAllOff() {
-  channels.forEach((ch) => { ch.mode = 'off'; render(ch); });
+  channels.forEach((ch) => { ch.v = 0; render(ch); });
   clearTimeout(offTimer); offTimer = null;
 }
 function armAutoOff() {
