@@ -163,7 +163,7 @@ modal.addEventListener('cancel', () => { modalBody.innerHTML = ''; });
 // Contact form → email via Web3Forms (static site, no backend).
 // Until WEB3FORMS_KEY is set, "Send" opens the visitor's mail app with the message pre-filled to CONTACT_EMAIL.
 const CONTACT_EMAIL = 'moheat-evo@outlook.com';
-const WEB3FORMS_KEY = ''; // paste the Access Key from web3forms.com here
+const WEB3FORMS_KEY = 'fcf3ea12-26c7-4df8-9a20-4d70452b606f';
 const contactForm = document.getElementById('contactForm');
 const cfStatus = document.getElementById('cfStatus');
 const setStatus = (html, cls = '') => { cfStatus.innerHTML = html; cfStatus.className = `cf-status ${cls}`; };
