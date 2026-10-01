@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="control.css?v=3" />
+  <link rel="stylesheet" href="control.css?v=4" />
 </head>
 <body>
   <header class="bar">
@@ -62,7 +62,7 @@
       <div class="card">
         <div class="card-head"><span>Level response</span></div>
         <label class="toggle"><input id="autoNorm" type="checkbox" checked /><span>Auto-normalize to the loudest part</span></label>
-        <label class="field" id="gainField"><span>Sensitivity <b id="gainValue">×1.0</b></span><input id="gain" type="range" min="1" max="4" step=".1" value="1" /></label>
+        <label class="field" id="gainField"><span>Sensitivity <b id="gainValue">×1.0</b></span><input id="gain" type="range" min="1" max="10" step=".1" value="1" /></label>
         <label class="field"><span>Noise gate <b id="gateValue">8%</b></span><input id="gate" type="range" min="0" max="30" step="1" value="8" /></label>
       </div>
 
@@ -84,6 +84,6 @@
   </main>
 
   <script src="https://www.youtube.com/iframe_api"></script>
-  <script src="control.js?v=3"></script>
+  <script src="control.js?v=4"></script>
 </body>
 </html>
