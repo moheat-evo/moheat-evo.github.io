@@ -7,7 +7,6 @@ const TICK = 50;                // ms between level updates
 const SMOOTH = .18;             // thermal inertia per tick
 const PEAK_DECAY = .004;        // auto-normalize: reference level falls ~0.08/s after a loud passage
 const PEAK_FLOOR = .25;         // never treat near-silence as "loudest"
-const SPP_UUID = '00001101-0000-1000-8000-00805f9b34fb';
 const DEFAULT_RANGE = { heatMin: 0, heatMax: 200, coolMin: 35, coolMax: 80 };   // firmware HOT_PWM_MIN/MAX, COLD_PWM_MIN/MAX
 let lastSent = '', lastSendAt = 0;
 
@@ -102,119 +101,13 @@ const updateResp = () => {
 [autoNorm, gain, gate].forEach((el) => el.addEventListener('input', updateResp));
 updateResp();
 
-// ---------- Serial ----------
-const VENDORS = { 0x10c4: 'Silicon Labs CP210x', 0x1a86: 'WCH CH340', 0x303a: 'Espressif', 0x0403: 'FTDI', 0x2341: 'Arduino' };
-let ports = [], port = null, writer = null, reader = null, readClosed = null, writeChain = Promise.resolve();
-const enc = new TextEncoder();
-
-const portLabel = (p, i) => {
-  const info = p.getInfo();
-  if (info.bluetoothServiceClassId) return `#${i + 1} Bluetooth serial`;
-  if (info.usbVendorId != null) {
-    const hex = (n) => n.toString(16).padStart(4, '0');
-    return `#${i + 1} ${VENDORS[info.usbVendorId] || 'USB serial'} (${hex(info.usbVendorId)}:${hex(info.usbProductId)})`;
-  }
-  return `#${i + 1} Serial port`;
-};
-
-async function refreshPorts(prefer) {
-  if (!supported) return;
-  const keep = prefer || ports[portSelect.selectedIndex];
-  ports = await navigator.serial.getPorts();
-  portSelect.innerHTML = '';
-  if (!ports.length) {
-    portSelect.add(new Option('No authorized device — click “+ Add”', ''));
-    portSelect.disabled = true;
-  } else {
-    ports.forEach((p, i) => portSelect.add(new Option(portLabel(p, i) + (p === port ? ' — connected' : ''), i)));
-    portSelect.disabled = !!port;
-    const idx = ports.indexOf(keep);
-    if (idx >= 0) portSelect.selectedIndex = idx;
-  }
-  connectBtn.disabled = !port && !ports.length;
-}
-
-const send = (line) => {
-  lastCmdEl.textContent = line;
-  if (!writer) return writeChain;
-  writeChain = writeChain.then(() => writer.write(enc.encode(line + '\n'))).then(() => log(`→ ${line}`)).catch((e) => log(`! write failed: ${e.message}`));
-  return writeChain;
-};
+// ---------- Serial (shared, see device.js) ----------
+const device = MoHeatDevice.create(
+  { select: portSelect, addBtn: addPortBtn, connectBtn, status: deviceStatus },
+  { log, onConnect: () => { lastSent = ''; } },
+);
+const send = (line) => { lastCmdEl.textContent = line; return device.send(line); };
 const stopOutput = () => { send('stop'); lastSent = 'stop'; };
-
-async function readLoop() {
-  const decoder = new TextDecoderStream();
-  readClosed = port.readable.pipeTo(decoder.writable).catch(() => {});
-  reader = decoder.readable.getReader();
-  let buf = '';
-  try {
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += value;
-      let n;
-      while ((n = buf.indexOf('\n')) >= 0) {
-        const line = buf.slice(0, n).trim(); buf = buf.slice(n + 1);
-        if (line) log(`← ${line}`);
-      }
-    }
-  } catch { /* port closed */ }
-}
-
-async function connect() {
-  const p = ports[portSelect.selectedIndex];
-  if (!p) return;
-  connectBtn.disabled = true;
-  setStatus(deviceStatus, 'Connecting…', 'busy');
-  try {
-    await p.open({ baudRate: 115200 });
-    // Keep the ESP32 out of reset/boot mode on boards with auto-reset wiring.
-    await p.setSignals({ dataTerminalReady: false, requestToSend: false }).catch(() => {});
-    port = p;
-    writer = port.writable.getWriter();
-    readLoop();
-    lastSent = '';
-    setStatus(deviceStatus, 'Connected', 'ok');
-    log(`connected · ${portLabel(p, ports.indexOf(p))}`);
-    connectBtn.textContent = 'Disconnect';
-    connectBtn.classList.add('is-on');
-  } catch (e) {
-    setStatus(deviceStatus, `Could not open: ${e.message}`, 'err');
-    port = null;
-  }
-  connectBtn.disabled = false;
-  refreshPorts(p);
-}
-
-async function disconnect(lost = false) {
-  const p = port;
-  if (!p) return;
-  if (!lost) await send('stop');
-  try { await writeChain; } catch {}
-  try { await reader?.cancel(); } catch {}
-  try { await readClosed; } catch {}
-  try { writer?.releaseLock(); } catch {}
-  try { if (!lost) await p.close(); } catch {}
-  port = writer = reader = null;
-  connectBtn.textContent = 'Connect';
-  connectBtn.classList.remove('is-on');
-  setStatus(deviceStatus, lost ? 'Device disconnected' : 'Not connected', lost ? 'err' : '');
-  log(lost ? 'device lost' : 'disconnected');
-  refreshPorts(p);
-}
-
-if (supported) {
-  addPortBtn.addEventListener('click', async () => {
-    try {
-      const p = await navigator.serial.requestPort({ allowedBluetoothServiceClassIds: [SPP_UUID] });
-      await refreshPorts(p);
-    } catch { /* picker dismissed */ }
-  });
-  connectBtn.addEventListener('click', () => (port ? disconnect() : connect()));
-  navigator.serial.addEventListener('connect', () => refreshPorts());
-  navigator.serial.addEventListener('disconnect', (e) => { if (e.target === port) disconnect(true); else refreshPorts(); });
-  refreshPorts();
-}
 
 // ---------- Sources ----------
 let ctx = null, mode = null;                 // 'youtube' | 'file'
@@ -394,4 +287,3 @@ $('estop').addEventListener('click', () => {
   stopOutput();
   log('EMERGENCY STOP');
 });
-addEventListener('pagehide', () => { if (writer) writer.write(enc.encode('stop\n')).catch(() => {}); });

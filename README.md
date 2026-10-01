@@ -33,6 +33,13 @@ assets/
 - **Safety**: `stop` on pause, end, sync off, disconnect, page close, and the STOP button.
 - The firmware in `arduino/` is kept out of the repo (`.gitignore`).
 
+## Output test page
+`test.html` (+ `test.css`, `test.js`) sets each ear directly: Off / Heat / Cool and a raw PWM value 0–255 (slider, number box or presets).
+- Sends `L<H|C><pwm> R<H|C><pwm>` (≤10×/s, on change); both off → `stop`. *Link left & right* mirrors one ear onto the other.
+- *Auto-off* (default 10 s) stops output after the last change; warnings appear above the firmware maxima (heat 200, cool 80) or below cool 35.
+- A raw command box sends any firmware line (`BH100`, `ID:6`, `stop`).
+- Both pages share the serial connection code in `device.js`.
+
 ## Publishing updates
 ```bash
 git add -A && git commit -m "Describe the change" && git push

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#090708" />
+  <meta name="robots" content="noindex" />
+  <title>MoHeat Evo — Output Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="control.css?v=4" />
+  <link rel="stylesheet" href="test.css?v=1" />
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="./">MoHeat <span>Evo</span></a>
+    <span class="page-tag">Output test</span>
+    <div class="device">
+      <select id="portSelect" aria-label="Serial port"></select>
+      <button class="btn sm" id="addPort" type="button" title="Authorize a new USB or Bluetooth serial port">+ Add</button>
+      <button class="btn sm primary" id="connectBtn" type="button" disabled>Connect</button>
+      <p class="status" id="deviceStatus"><i></i><span>Not connected</span></p>
+    </div>
+    <a class="btn sm" href="control.html">Media control →</a>
+    <button class="estop" id="estop" type="button">■ STOP</button>
+  </header>
+
+  <p class="unsupported" id="unsupported" hidden>Needs <b>Web Serial</b> — open this page in desktop <b>Chrome</b> or <b>Edge</b>.</p>
+
+  <main class="test">
+    <section class="ears-test">
+      <article class="ch" data-side="L">
+        <header><h2>Left ear</h2><b class="ch-out">Off</b></header>
+        <div class="seg" role="radiogroup" aria-label="Left mode">
+          <button type="button" data-mode="off" class="on">Off</button>
+          <button type="button" data-mode="H">Heat</button>
+          <button type="button" data-mode="C">Cool</button>
+        </div>
+        <div class="pwm">
+          <input class="pwm-range" type="range" min="0" max="255" value="100" aria-label="Left PWM" />
+          <input class="pwm-num" type="number" min="0" max="255" value="100" aria-label="Left PWM value" />
+        </div>
+        <div class="presets"></div>
+        <p class="warn" hidden></p>
+      </article>
+
+      <article class="ch" data-side="R">
+        <header><h2>Right ear</h2><b class="ch-out">Off</b></header>
+        <div class="seg" role="radiogroup" aria-label="Right mode">
+          <button type="button" data-mode="off" class="on">Off</button>
+          <button type="button" data-mode="H">Heat</button>
+          <button type="button" data-mode="C">Cool</button>
+        </div>
+        <div class="pwm">
+          <input class="pwm-range" type="range" min="0" max="255" value="100" aria-label="Right PWM" />
+          <input class="pwm-num" type="number" min="0" max="255" value="100" aria-label="Right PWM value" />
+        </div>
+        <div class="presets"></div>
+        <p class="warn" hidden></p>
+      </article>
+    </section>
+
+    <section class="tools">
+      <div class="card">
+        <div class="card-head"><span>Options</span></div>
+        <label class="toggle"><input id="link" type="checkbox" /><span>Link left &amp; right</span></label>
+        <label class="toggle"><input id="autoOff" type="checkbox" checked /><span>Auto-off after <input id="autoOffSec" type="number" min="1" max="600" value="10" /> s</span></label>
+        <p class="countdown" id="countdown"></p>
+        <button class="btn" id="allOff" type="button">All off</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span>Command</span><code id="lastCmd">—</code></div>
+        <form class="raw" id="rawForm">
+          <input id="raw" type="text" placeholder="Raw command, e.g. BH100 · LC60 RH80 · ID:6 · stop" autocomplete="off" spellcheck="false" />
+          <button class="btn" type="submit">Send</button>
+        </form>
+        <details class="log" open><summary>Serial log</summary><pre id="log"></pre></details>
+      </div>
+    </section>
+  </main>
+
+  <script src="device.js?v=1"></script>
+  <script src="test.js?v=1"></script>
+</body>
+</html>
