@@ -1,49 +1,91 @@
-// MoHeat Evo output test: set each ear to Off / Heat / Cool with a raw PWM value (0–255).
-// Sends "L<H|C><pwm> R<H|C><pwm>" (at most 10×/s, only on change); both off → "stop".
-const FIRMWARE = { heatMax: 200, coolMin: 35, coolMax: 80 };   // HOT_PWM_MAX, COLD_PWM_MIN/MAX
-const PRESETS = { H: [50, 100, 150, 200], C: [35, 50, 65, 80] };
+// MoHeat Evo output test: each ear is Off / Heat / Cool at 0–100 %.
+// 0 % is off; 1–100 % maps linearly to the output range (min–max PWM), shared with control.html.
+// Sends "L<H|C><pwm> R<H|C><pwm>" (≤10×/s, only on change); both off → "stop".
+const DEFAULT_RANGE = { heatMin: 0, heatMax: 200, coolMin: 35, coolMax: 80 };   // firmware HOT_PWM_MIN/MAX, COLD_PWM_MIN/MAX
+const FIRMWARE_MAX = { heat: 200, cool: 80 };
 const SEND_INTERVAL = 100;
+const ARC = 377;   // gauge arc length (270° of r = 80)
 
 const $ = (id) => document.getElementById(id);
-const logEl = $('log'), lastCmdEl = $('lastCmd'), countdownEl = $('countdown');
+const logEl = $('log'), lastCmdEl = $('lastCmd'), countdownEl = $('countdown'), previewEl = $('cmdPreview');
 const log = (line) => {
   const t = new Date().toLocaleTimeString([], { hour12: false });
   logEl.textContent = (`${t}  ${line}\n` + logEl.textContent).split('\n').slice(0, 300).join('\n');
 };
+const store = {
+  get: (k, d) => { try { return JSON.parse(localStorage.getItem(`moheat.${k}`)) ?? d; } catch { return d; } },
+  set: (k, v) => { try { localStorage.setItem(`moheat.${k}`, JSON.stringify(v)); } catch {} },
+};
 
+let lastSent = '', lastSendAt = 0, offTimer = null, offAt = 0;
 if (!MoHeatDevice.supported) $('unsupported').hidden = false;
 const device = MoHeatDevice.create(
   { select: $('portSelect'), addBtn: $('addPort'), connectBtn: $('connectBtn'), status: $('deviceStatus') },
   { log, onConnect: () => { lastSent = ''; }, onDisconnect: () => setAllOff() },
 );
-let lastSent = '', lastSendAt = 0, offTimer = null, offAt = 0;
 const send = (line) => { lastCmdEl.textContent = line; return device.send(line); };
 
+// ---------- Output range (shared with control.html) ----------
+let range = { ...DEFAULT_RANGE, ...store.get('range', {}) };
+const rangeInputs = { heatMin: $('heatMin'), heatMax: $('heatMax'), coolMin: $('coolMin'), coolMax: $('coolMax') };
+const clampPwm = (n) => Math.min(255, Math.max(0, Math.round(+n || 0)));
+function syncRange() {
+  Object.entries(rangeInputs).forEach(([k, el]) => { el.value = range[k]; });
+  const over = range.heatMax > FIRMWARE_MAX.heat || range.coolMax > FIRMWARE_MAX.cool;
+  const note = $('rangeNote');
+  note.textContent = over
+    ? `Above the firmware maximum (heat ${FIRMWARE_MAX.heat} / cool ${FIRMWARE_MAX.cool}) — check skin temperature.`
+    : '0% is off · 1–100% maps to min–max · shared with Media control';
+  note.classList.toggle('warn', over);
+  channels.forEach(render);
+}
+Object.entries(rangeInputs).forEach(([k, el]) => el.addEventListener('change', () => {
+  range[k] = clampPwm(el.value);
+  if (range.heatMin > range.heatMax) range.heatMin = range.heatMax;
+  if (range.coolMin > range.coolMax) range.coolMin = range.coolMax;
+  store.set('range', range); syncRange();
+}));
+$('resetRange').addEventListener('click', () => { range = { ...DEFAULT_RANGE }; store.set('range', range); syncRange(); });
+
 // ---------- Channels ----------
-const clamp = (n) => Math.min(255, Math.max(0, Math.round(+n || 0)));
+const toPwm = (mode, pct) => {
+  if (mode === 'off' || pct <= 0) return 0;
+  const [lo, hi] = mode === 'H' ? [range.heatMin, range.heatMax] : [range.coolMin, range.coolMax];
+  return Math.round(lo + (pct / 100) * (hi - lo));
+};
 const channels = [...document.querySelectorAll('.ch')].map((el) => ({
-  el, side: el.dataset.side, mode: 'off', pwm: 100,
-  out: el.querySelector('.ch-out'), seg: [...el.querySelectorAll('.seg button')],
-  range: el.querySelector('.pwm-range'), num: el.querySelector('.pwm-num'),
-  presets: el.querySelector('.presets'), warn: el.querySelector('.warn'),
+  el, side: el.dataset.side, mode: 'off', pct: 50,
+  seg: [...el.querySelectorAll('.seg button')], slider: el.querySelector('.pct'),
+  presets: [...el.querySelectorAll('.presets button')],
+  fill: el.querySelector('.g-fill'), pctEl: el.querySelector('.g-pct'), modeEl: el.querySelector('.g-mode'), pwmEl: el.querySelector('.ch-pwm'),
+  cup: document.querySelector(el.dataset.side === 'L' ? '.cup-l' : '.cup-r'),
+  aura: document.querySelector(el.dataset.side === 'L' ? '.aura-l' : '.aura-r'),
 }));
 const other = (ch) => channels.find((c) => c !== ch);
-const part = (ch) => (ch.mode === 'off' ? `${ch.side}H0` : `${ch.side}${ch.mode}${ch.pwm}`);
-const command = () => (channels.every((c) => c.mode === 'off' || c.pwm === 0) ? 'stop' : channels.map(part).join(' '));
+const active = (ch) => ch.mode !== 'off' && toPwm(ch.mode, ch.pct) > 0;
+const command = () => (channels.some(active)
+  ? channels.map((c) => (active(c) ? `${c.side}${c.mode}${toPwm(c.mode, c.pct)}` : `${c.side}H0`)).join(' ')
+  : 'stop');
 
 function render(ch) {
-  ch.el.classList.toggle('heat', ch.mode === 'H');
-  ch.el.classList.toggle('cool', ch.mode === 'C');
+  const on = active(ch), pwm = toPwm(ch.mode, ch.pct);
+  ch.el.classList.toggle('heat', on && ch.mode === 'H');
+  ch.el.classList.toggle('cool', on && ch.mode === 'C');
   ch.el.classList.toggle('off', ch.mode === 'off');
   ch.seg.forEach((b) => b.classList.toggle('on', b.dataset.mode === ch.mode));
-  ch.range.value = ch.num.value = ch.pwm;
-  ch.out.textContent = ch.mode === 'off' || ch.pwm === 0 ? 'Off' : `${ch.mode}${ch.pwm}`;
-  ch.presets.innerHTML = ch.mode === 'off' ? '' : PRESETS[ch.mode].map((v) => `<button type="button" data-v="${v}">${v}</button>`).join('');
-  let warn = '';
-  if (ch.mode === 'H' && ch.pwm > FIRMWARE.heatMax) warn = `Above the firmware heat maximum (${FIRMWARE.heatMax}). Check skin temperature.`;
-  if (ch.mode === 'C' && ch.pwm > FIRMWARE.coolMax) warn = `Above the firmware cool maximum (${FIRMWARE.coolMax}).`;
-  if (ch.mode === 'C' && ch.pwm > 0 && ch.pwm < FIRMWARE.coolMin) warn = `Below ${FIRMWARE.coolMin} the mist is usually not perceptible.`;
-  ch.warn.textContent = warn; ch.warn.hidden = !warn;
+  ch.presets.forEach((b) => b.classList.toggle('on', ch.mode !== 'off' && +b.dataset.p === ch.pct));
+  ch.slider.value = ch.pct;
+  const shown = ch.mode === 'off' ? 0 : ch.pct;
+  ch.pctEl.innerHTML = `${shown}<small>%</small>`;
+  ch.modeEl.textContent = !on ? 'Off' : ch.mode === 'H' ? 'Heat' : 'Cool';
+  ch.pwmEl.textContent = on ? `${ch.mode}${pwm}` : 'off';
+  ch.fill.style.strokeDashoffset = ARC * (1 - shown / 100);
+  const rgb = ch.mode === 'C' ? '95,178,255' : '255,122,92', a = on ? .25 + shown / 140 : 0;
+  ch.cup.style.background = on ? (ch.mode === 'C' ? '#cfe6ff' : '#ffd2c4') : '#eee8e7';
+  ch.cup.style.boxShadow = on ? `0 0 ${12 + shown / 3}px rgba(${rgb},${a})` : 'none';
+  ch.aura.style.background = `rgb(${rgb})`;
+  ch.aura.style.opacity = on ? (shown / 100) * .55 : 0;
+  previewEl.textContent = command();
 }
 
 function update(ch, patch, fromLink = false) {
@@ -55,28 +97,27 @@ function update(ch, patch, fromLink = false) {
 
 channels.forEach((ch) => {
   ch.seg.forEach((b) => b.addEventListener('click', () => update(ch, { mode: b.dataset.mode })));
-  ch.range.addEventListener('input', () => update(ch, { pwm: clamp(ch.range.value) }));
-  ch.num.addEventListener('change', () => update(ch, { pwm: clamp(ch.num.value) }));
-  ch.presets.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) update(ch, { pwm: +b.dataset.v }); });
-  render(ch);
+  ch.slider.addEventListener('input', () => update(ch, { pct: +ch.slider.value }));
+  ch.presets.forEach((b) => b.addEventListener('click', () => update(ch, { pct: +b.dataset.p, ...(ch.mode === 'off' ? { mode: 'H' } : {}) })));
 });
-$('link').addEventListener('change', () => { if ($('link').checked) update(channels[1], { mode: channels[0].mode, pwm: channels[0].pwm }, true); });
+$('link').addEventListener('change', () => { if ($('link').checked) update(channels[1], { mode: channels[0].mode, pct: channels[0].pct }, true); });
+syncRange();
 
 // ---------- Auto-off ----------
 function setAllOff() {
   channels.forEach((ch) => { ch.mode = 'off'; render(ch); });
-  clearTimeout(offTimer); offTimer = null; countdownEl.textContent = '';
+  clearTimeout(offTimer); offTimer = null;
 }
 function armAutoOff() {
-  clearTimeout(offTimer); offTimer = null; countdownEl.textContent = '';
+  clearTimeout(offTimer); offTimer = null;
   if (!$('autoOff').checked || command() === 'stop') return;
   const sec = Math.min(600, Math.max(1, +$('autoOffSec').value || 10));
   offAt = performance.now() + sec * 1000;
   offTimer = setTimeout(() => { setAllOff(); log('auto-off'); }, sec * 1000);
 }
 setInterval(() => {
-  countdownEl.textContent = offTimer ? `Auto-off in ${Math.ceil((offAt - performance.now()) / 1000)} s` : '';
-}, 250);
+  countdownEl.textContent = offTimer ? `Auto-off in ${Math.max(0, Math.ceil((offAt - performance.now()) / 1000))} s` : '';
+}, 200);
 $('autoOff').addEventListener('change', armAutoOff);
 $('autoOffSec').addEventListener('change', armAutoOff);
 $('allOff').addEventListener('click', () => { setAllOff(); send('stop'); lastSent = 'stop'; });
@@ -88,7 +129,7 @@ $('rawForm').addEventListener('submit', (e) => {
   const line = $('raw').value.trim();
   if (!line) return;
   send(line);
-  lastSent = command();   // don't overwrite it; the next slider change takes over again
+  lastSent = command();   // don't overwrite it; the next change takes over again
 });
 
 // ---------- Send loop ----------

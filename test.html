@@ -8,9 +8,9 @@
   <title>MoHeat Evo — Output Test</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="control.css?v=4" />
-  <link rel="stylesheet" href="test.css?v=1" />
+  <link rel="stylesheet" href="test.css?v=2" />
 </head>
 <body>
   <header class="bar">
@@ -29,59 +29,88 @@
   <p class="unsupported" id="unsupported" hidden>Needs <b>Web Serial</b> — open this page in desktop <b>Chrome</b> or <b>Edge</b>.</p>
 
   <main class="test">
-    <section class="ears-test">
+    <!-- Stage: left ear · head · right ear -->
+    <section class="stage-test">
       <article class="ch" data-side="L">
-        <header><h2>Left ear</h2><b class="ch-out">Off</b></header>
+        <header><span class="ch-side">LEFT EAR</span><span class="ch-pwm mono">off</span></header>
+        <div class="gauge">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="g-track" cx="100" cy="100" r="80" />
+            <circle class="g-fill" cx="100" cy="100" r="80" />
+          </svg>
+          <div class="g-center"><b class="g-pct">0<small>%</small></b><span class="g-mode">Off</span></div>
+        </div>
         <div class="seg" role="radiogroup" aria-label="Left mode">
           <button type="button" data-mode="off" class="on">Off</button>
           <button type="button" data-mode="H">Heat</button>
           <button type="button" data-mode="C">Cool</button>
         </div>
-        <div class="pwm">
-          <input class="pwm-range" type="range" min="0" max="255" value="100" aria-label="Left PWM" />
-          <input class="pwm-num" type="number" min="0" max="255" value="100" aria-label="Left PWM value" />
-        </div>
-        <div class="presets"></div>
-        <p class="warn" hidden></p>
+        <input class="pct" type="range" min="0" max="100" value="50" aria-label="Left output %" />
+        <div class="presets"><button type="button" data-p="25">25%</button><button type="button" data-p="50">50%</button><button type="button" data-p="75">75%</button><button type="button" data-p="100">100%</button></div>
       </article>
 
+      <figure class="head" aria-hidden="true">
+        <div class="aura aura-l"></div><div class="aura aura-r"></div>
+        <svg viewBox="0 0 160 200">
+          <defs><linearGradient id="hair" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e5357"/><stop offset="1" stop-color="#3f2e31"/></linearGradient></defs>
+          <path d="M8 200C8 162 38 146 80 146S152 162 152 200Z" fill="#2b2225" stroke="#ffffff22"/>
+          <rect x="62" y="104" width="36" height="50" rx="14" fill="#d8c6c0"/>
+          <ellipse cx="80" cy="66" rx="46" ry="54" fill="url(#hair)" stroke="#ffffff26"/>
+        </svg>
+        <i class="cup cup-l"></i><i class="cup cup-r"></i>
+        <figcaption class="mono" id="cmdPreview">stop</figcaption>
+      </figure>
+
       <article class="ch" data-side="R">
-        <header><h2>Right ear</h2><b class="ch-out">Off</b></header>
+        <header><span class="ch-side">RIGHT EAR</span><span class="ch-pwm mono">off</span></header>
+        <div class="gauge">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <circle class="g-track" cx="100" cy="100" r="80" />
+            <circle class="g-fill" cx="100" cy="100" r="80" />
+          </svg>
+          <div class="g-center"><b class="g-pct">0<small>%</small></b><span class="g-mode">Off</span></div>
+        </div>
         <div class="seg" role="radiogroup" aria-label="Right mode">
           <button type="button" data-mode="off" class="on">Off</button>
           <button type="button" data-mode="H">Heat</button>
           <button type="button" data-mode="C">Cool</button>
         </div>
-        <div class="pwm">
-          <input class="pwm-range" type="range" min="0" max="255" value="100" aria-label="Right PWM" />
-          <input class="pwm-num" type="number" min="0" max="255" value="100" aria-label="Right PWM value" />
-        </div>
-        <div class="presets"></div>
-        <p class="warn" hidden></p>
+        <input class="pct" type="range" min="0" max="100" value="50" aria-label="Right output %" />
+        <div class="presets"><button type="button" data-p="25">25%</button><button type="button" data-p="50">50%</button><button type="button" data-p="75">75%</button><button type="button" data-p="100">100%</button></div>
       </article>
     </section>
 
-    <section class="tools">
+    <!-- Tools -->
+    <section class="tools-row">
       <div class="card">
         <div class="card-head"><span>Options</span></div>
         <label class="toggle"><input id="link" type="checkbox" /><span>Link left &amp; right</span></label>
         <label class="toggle"><input id="autoOff" type="checkbox" checked /><span>Auto-off after <input id="autoOffSec" type="number" min="1" max="600" value="10" /> s</span></label>
-        <p class="countdown" id="countdown"></p>
+        <p class="countdown mono" id="countdown"></p>
         <button class="btn" id="allOff" type="button">All off</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span>Output range (PWM)</span><button class="link" id="resetRange" type="button">Reset</button></div>
+        <div class="range-rows">
+          <div class="rr heat"><span>Heat</span><label>min<input id="heatMin" type="number" min="0" max="255" /></label><i>→</i><label>max<input id="heatMax" type="number" min="0" max="255" /></label></div>
+          <div class="rr cool"><span>Cool</span><label>min<input id="coolMin" type="number" min="0" max="255" /></label><i>→</i><label>max<input id="coolMax" type="number" min="0" max="255" /></label></div>
+        </div>
+        <p class="range-note" id="rangeNote">0% is off · 1–100% maps to min–max · shared with Media control</p>
       </div>
 
       <div class="card">
         <div class="card-head"><span>Command</span><code id="lastCmd">—</code></div>
         <form class="raw" id="rawForm">
-          <input id="raw" type="text" placeholder="Raw command, e.g. BH100 · LC60 RH80 · ID:6 · stop" autocomplete="off" spellcheck="false" />
+          <input id="raw" type="text" placeholder="Raw: BH100 · LC60 RH80 · ID:6 · stop" autocomplete="off" spellcheck="false" />
           <button class="btn" type="submit">Send</button>
         </form>
-        <details class="log" open><summary>Serial log</summary><pre id="log"></pre></details>
+        <details class="log"><summary>Serial log</summary><pre id="log"></pre></details>
       </div>
     </section>
   </main>
 
   <script src="device.js?v=1"></script>
-  <script src="test.js?v=1"></script>
+  <script src="test.js?v=2"></script>
 </body>
 </html>
