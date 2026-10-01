@@ -1,34 +1,45 @@
-// MoHeat Evo device control: YouTube (tab audio) or an audio file → per-ear level → serial commands.
+// MoHeat Evo device control: YouTube (tab audio) or an uploaded video/audio file → per-ear level → serial commands.
 // Firmware protocol (arduino/MoHeatEvoArduino.ino): one line per command, e.g. "LH120 RC50\n"; "stop" turns everything off.
 
-// ---------- Mapping (same parameters as the firmware) ----------
-const HEAT_MAX = 200;           // HOT_PWM_MAX
-const COOL_MIN = 35;            // COLD_PWM_MIN
-const COOL_MAX = 80;            // COLD_PWM_MAX
-const SEND_INTERVAL = 100;      // ms → 10 commands per second at most
+// ---------- Constants ----------
+const SEND_INTERVAL = 100;      // ms → at most 10 commands per second
 const TICK = 50;                // ms between level updates
 const SMOOTH = .18;             // thermal inertia per tick
+const PEAK_DECAY = .004;        // auto-normalize: reference level falls ~0.08/s after a loud passage
+const PEAK_FLOOR = .25;         // never treat near-silence as "loudest"
 const SPP_UUID = '00001101-0000-1000-8000-00805f9b34fb';
-let lastSent = '', lastSendAt = 0;   // last serial command and when it went out
+const DEFAULT_RANGE = { heatMax: 200, coolMin: 35, coolMax: 80 };   // firmware HOT_PWM_MAX / COLD_PWM_MIN / COLD_PWM_MAX
+let lastSent = '', lastSendAt = 0;
 
+// ---------- Mapping ----------
 // v: −100 (max cool) … 0 (off) … +100 (max warm)
-const toPwm = (v) => {
+const toPwm = (v, r) => {
   const a = Math.min(1, Math.abs(v) / 100);
   if (a < .01) return { type: 'H', pwm: 0 };
-  if (v > 0) return { type: 'H', pwm: Math.round(a * HEAT_MAX) };
-  return { type: 'C', pwm: Math.round(COOL_MIN + a * (COOL_MAX - COOL_MIN)) };
+  if (v > 0) return { type: 'H', pwm: Math.round(a * r.heatMax) };
+  return { type: 'C', pwm: Math.round(r.coolMin + a * (r.coolMax - r.coolMin)) };
 };
-const buildCommand = (l, r) => {
-  const L = toPwm(l), R = toPwm(r);
+const buildCommand = (l, rgt, r) => {
+  const L = toPwm(l, r), R = toPwm(rgt, r);
   if (L.pwm === 0 && R.pwm === 0) return 'stop';
   return `L${L.type}${L.pwm} R${R.type}${R.pwm}`;
 };
+// Raw loudness 0…1 (−50 dB → 0, −10 dB → 1)
 const levelFrom = (an, buf) => {
   an.getFloatTimeDomainData(buf);
   let sum = 0;
   for (const s of buf) sum += s * s;
   const db = 10 * Math.log10(sum / buf.length + 1e-12);
-  return Math.min(1, Math.max(0, (db + 50) / 40)); // −50 dB → 0, −10 dB → 1
+  return Math.min(1, Math.max(0, (db + 50) / 40));
+};
+// Raw levels → drive 0…1, so the loudest part of the content can reach full output.
+const shape = (raw, st, cfg) => {
+  const gate = cfg.gate;
+  if (cfg.auto) {
+    st.peak = Math.max(st.peak - PEAK_DECAY, ...raw, PEAK_FLOOR);
+    return raw.map((x) => Math.min(1, Math.max(0, (x - gate) / Math.max(.05, st.peak - gate))));
+  }
+  return raw.map((x) => Math.min(1, Math.max(0, (x - gate) / (1 - gate) * cfg.gain)));
 };
 const describe = (v) => {
   const a = Math.round(Math.abs(v));
@@ -40,10 +51,12 @@ const $ = (id) => document.getElementById(id);
 const portSelect = $('portSelect'), addPortBtn = $('addPort'), connectBtn = $('connectBtn');
 const deviceStatus = $('deviceStatus'), sourceStatus = $('sourceStatus');
 const ytForm = $('ytForm'), ytUrl = $('ytUrl'), playerWrap = $('playerWrap'), syncBtn = $('syncBtn');
-const audioFile = $('audioFile'), audioEl = $('audioPlayer');
+const mediaFile = $('mediaFile'), mediaEl = $('mediaEl');
 const temp = $('tempRange'), tempValue = $('tempValue'), lastCmdEl = $('lastCmd'), logEl = $('log');
-const ears = [...document.querySelectorAll('.ear-card')].map((card) => ({
-  card, val: card.querySelector('.ear-val'), meter: card.querySelector('.meter i'), level: card.querySelector('.ear-level'), v: 0, lv: 0,
+const autoNorm = $('autoNorm'), gain = $('gain'), gate = $('gate');
+const rangeInputs = { heatMax: $('heatMax'), coolMin: $('coolMin'), coolMax: $('coolMax') };
+const ears = [...document.querySelectorAll('.ear')].map((card) => ({
+  card, val: card.querySelector('.ear-val'), meter: card.querySelector('.meter i'), pwm: card.querySelector('.ear-pwm'), v: 0,
 }));
 
 const setStatus = (el, text, cls = '') => { el.className = `status ${cls}`; el.querySelector('span').textContent = text; };
@@ -51,12 +64,42 @@ const log = (line) => {
   const t = new Date().toLocaleTimeString([], { hour12: false });
   logEl.textContent = (`${t}  ${line}\n` + logEl.textContent).split('\n').slice(0, 200).join('\n');
 };
+const store = {
+  get: (k, d) => { try { return JSON.parse(localStorage.getItem(`moheat.${k}`)) ?? d; } catch { return d; } },
+  set: (k, v) => { try { localStorage.setItem(`moheat.${k}`, JSON.stringify(v)); } catch {} },
+};
 
 const supported = 'serial' in navigator && !!navigator.mediaDevices?.getDisplayMedia;
 if (!supported) {
   $('unsupported').hidden = false;
   addPortBtn.disabled = connectBtn.disabled = true;
 }
+
+// ---------- Settings: output range + level response ----------
+let range = { ...DEFAULT_RANGE, ...store.get('range', {}) };
+const clampPwm = (n) => Math.min(255, Math.max(0, Math.round(+n || 0)));
+const syncRangeInputs = () => Object.entries(rangeInputs).forEach(([k, el]) => { el.value = range[k]; });
+Object.entries(rangeInputs).forEach(([k, el]) => el.addEventListener('change', () => {
+  range[k] = clampPwm(el.value);
+  if (range.coolMin > range.coolMax) range.coolMin = range.coolMax;
+  syncRangeInputs(); store.set('range', range); lastSent = '';
+}));
+$('resetRange').addEventListener('click', () => { range = { ...DEFAULT_RANGE }; syncRangeInputs(); store.set('range', range); lastSent = ''; });
+syncRangeInputs();
+
+const resp = { auto: store.get('auto', true), gain: store.get('gain', 1), gate: store.get('gate', 8) / 100 };
+const peakState = { peak: PEAK_FLOOR };
+autoNorm.checked = resp.auto; gain.value = resp.gain; gate.value = Math.round(resp.gate * 100);
+const updateResp = () => {
+  resp.auto = autoNorm.checked; resp.gain = +gain.value; resp.gate = +gate.value / 100;
+  $('gainValue').textContent = `×${resp.gain.toFixed(1)}`;
+  $('gateValue').textContent = `${gate.value}%`;
+  $('gainField').classList.toggle('disabled', resp.auto);
+  gain.disabled = resp.auto;
+  store.set('auto', resp.auto); store.set('gain', resp.gain); store.set('gate', +gate.value);
+};
+[autoNorm, gain, gate].forEach((el) => el.addEventListener('input', updateResp));
+updateResp();
 
 // ---------- Serial ----------
 const VENDORS = { 0x10c4: 'Silicon Labs CP210x', 0x1a86: 'WCH CH340', 0x303a: 'Espressif', 0x0403: 'FTDI', 0x2341: 'Arduino' };
@@ -79,7 +122,7 @@ async function refreshPorts(prefer) {
   ports = await navigator.serial.getPorts();
   portSelect.innerHTML = '';
   if (!ports.length) {
-    portSelect.add(new Option('No authorized devices — click “Add device…”', ''));
+    portSelect.add(new Option('No authorized device — click “+ Add”', ''));
     portSelect.disabled = true;
   } else {
     ports.forEach((p, i) => portSelect.add(new Option(portLabel(p, i) + (p === port ? ' — connected' : ''), i)));
@@ -96,6 +139,7 @@ const send = (line) => {
   writeChain = writeChain.then(() => writer.write(enc.encode(line + '\n'))).then(() => log(`→ ${line}`)).catch((e) => log(`! write failed: ${e.message}`));
   return writeChain;
 };
+const stopOutput = () => { send('stop'); lastSent = 'stop'; };
 
 async function readLoop() {
   const decoder = new TextDecoderStream();
@@ -129,12 +173,12 @@ async function connect() {
     writer = port.writable.getWriter();
     readLoop();
     lastSent = '';
-    setStatus(deviceStatus, `Connected · ${portLabel(p, ports.indexOf(p))}`, 'ok');
-    log('connected');
+    setStatus(deviceStatus, 'Connected', 'ok');
+    log(`connected · ${portLabel(p, ports.indexOf(p))}`);
     connectBtn.textContent = 'Disconnect';
     connectBtn.classList.add('is-on');
   } catch (e) {
-    setStatus(deviceStatus, `Could not open port: ${e.message}`, 'err');
+    setStatus(deviceStatus, `Could not open: ${e.message}`, 'err');
     port = null;
   }
   connectBtn.disabled = false;
@@ -171,19 +215,32 @@ if (supported) {
   refreshPorts();
 }
 
-// ---------- Audio sources ----------
-let ctx = null, mode = null;                 // mode: 'youtube' | 'file'
-let tabStream = null, tabAnalysers = null;   // YouTube via tab capture
-let fileAnalysers = null;                    // audio file via <audio>
+// ---------- Sources ----------
+let ctx = null, mode = null;                 // 'youtube' | 'file'
+let tabStream = null, tabAnalysers = null;   // YouTube via tab-audio capture
+let fileAnalysers = null;                    // uploaded file via <video>
 let ytPlayer = null, ytPlaying = false, ytApiReady = false, pendingVideo = null;
 const timeBuf = new Float32Array(2048);
 
+const ensureCtx = () => { ctx ??= new AudioContext(); return ctx.resume(); };
 const makeAnalysers = (source) => {
   const splitter = ctx.createChannelSplitter(2);
   source.connect(splitter);
   return [0, 1].map((i) => { const an = ctx.createAnalyser(); an.fftSize = 2048; splitter.connect(an, i); return an; });
 };
-const ensureCtx = () => { ctx ??= new AudioContext(); return ctx.resume(); };
+
+function useMode(m) {
+  mode = m;
+  peakState.peak = PEAK_FLOOR;
+  playerWrap.classList.add('has-media');
+  const yt = m === 'youtube';
+  mediaEl.hidden = yt;
+  const frame = ytPlayer?.getIframe?.();
+  if (frame) frame.style.display = yt ? '' : 'none';
+  syncBtn.hidden = !yt;
+  if (yt) { if (!mediaEl.paused) mediaEl.pause(); }
+  else { ytPlayer?.pauseVideo?.(); if (tabStream) stopSync(); }
+}
 
 const parseYouTube = (raw) => {
   try {
@@ -203,7 +260,6 @@ window.onYouTubeIframeAPIReady = () => { ytApiReady = true; if (pendingVideo) lo
 function loadVideo(v) {
   if (!ytApiReady) { pendingVideo = v; setStatus(sourceStatus, 'Loading YouTube player…', 'busy'); return; }
   pendingVideo = null;
-  playerWrap.classList.add('has-video');
   if (ytPlayer) ytPlayer.loadVideoById({ videoId: v.id, startSeconds: v.start });
   else {
     ytPlayer = new YT.Player('ytPlayer', {
@@ -214,19 +270,20 @@ function loadVideo(v) {
   }
   useMode('youtube');
   syncBtn.disabled = !supported;
-  setStatus(sourceStatus, tabAnalysers ? 'Thermal sync on — play the video' : 'Video loaded — start thermal sync, then play', tabAnalysers ? 'ok' : '');
+  setStatus(sourceStatus, tabAnalysers ? 'Thermal sync on — play the video' : 'Start thermal sync, then play', tabAnalysers ? 'ok' : '');
 }
 
 function onYtState(state) {
   const was = ytPlaying;
   ytPlaying = state === YT.PlayerState.PLAYING;
-  if (was && !ytPlaying) { send('stop'); lastSent = 'stop'; }
+  if (ytPlaying && !was) peakState.peak = PEAK_FLOOR;
+  if (was && !ytPlaying) stopOutput();
 }
 
 ytForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const v = parseYouTube(ytUrl.value);
-  if (!v) { setStatus(sourceStatus, 'That doesn’t look like a YouTube video link', 'err'); return; }
+  if (!v) { setStatus(sourceStatus, 'Not a YouTube video link', 'err'); return; }
   loadVideo(v);
 });
 
@@ -245,13 +302,12 @@ async function startSync() {
   const track = stream.getAudioTracks()[0];
   if (!track) {
     stream.getTracks().forEach((t) => t.stop());
-    setStatus(sourceStatus, 'No audio shared — choose “This tab” and turn on “Share tab audio”', 'err'); return;
+    setStatus(sourceStatus, 'No audio — choose “This tab” and turn on “Share tab audio”', 'err'); return;
   }
   tabStream = stream;
   tabAnalysers = makeAnalysers(ctx.createMediaStreamSource(new MediaStream([track])));
   track.addEventListener('ended', stopSync);
   const ch = track.getSettings().channelCount;
-  useMode('youtube');
   syncBtn.textContent = 'Stop thermal sync';
   syncBtn.classList.add('is-on');
   setStatus(sourceStatus, `Thermal sync on · ${ch === 1 ? 'mono (both ears equal)' : 'stereo'} — play the video`, 'ok');
@@ -264,34 +320,27 @@ function stopSync() {
   syncBtn.textContent = 'Start thermal sync';
   syncBtn.classList.remove('is-on');
   if (mode === 'youtube') setStatus(sourceStatus, 'Thermal sync off');
-  send('stop'); lastSent = 'stop';
+  stopOutput();
 }
 syncBtn.addEventListener('click', () => (tabStream ? stopSync() : startSync()));
 
-audioFile.addEventListener('change', async () => {
-  const f = audioFile.files[0];
+mediaFile.addEventListener('change', async () => {
+  const f = mediaFile.files[0];
   if (!f) return;
   await ensureCtx();
   if (!fileAnalysers) {
-    const src = ctx.createMediaElementSource(audioEl);
+    const src = ctx.createMediaElementSource(mediaEl);
     src.connect(ctx.destination);
     fileAnalysers = makeAnalysers(src);
   }
-  if (audioEl.src) URL.revokeObjectURL(audioEl.src);
-  audioEl.src = URL.createObjectURL(f);
-  audioEl.hidden = false;
-  if (tabStream) stopSync();
-  ytPlayer?.pauseVideo?.();
+  if (mediaEl.src) URL.revokeObjectURL(mediaEl.src);
+  mediaEl.src = URL.createObjectURL(f);
   useMode('file');
-  setStatus(sourceStatus, `Audio file · ${f.name}`, 'ok');
-  audioEl.play();
+  setStatus(sourceStatus, `${f.type.startsWith('video/') ? 'Video' : 'Audio'} · ${f.name}`, 'ok');
+  mediaEl.play().catch(() => {});
 });
-['pause', 'ended'].forEach((ev) => audioEl.addEventListener(ev, () => { send('stop'); lastSent = 'stop'; }));
-
-function useMode(m) {
-  mode = m;
-  if (m !== 'file' && !audioEl.paused) audioEl.pause();
-}
+mediaEl.addEventListener('play', () => { peakState.peak = PEAK_FLOOR; });
+['pause', 'ended'].forEach((ev) => mediaEl.addEventListener(ev, stopOutput));
 
 // ---------- Temperature slider ----------
 const updateTemp = () => {
@@ -306,29 +355,29 @@ temp.addEventListener('input', updateTemp); updateTemp();
 setInterval(() => {
   const setting = +temp.value;
   const an = mode === 'youtube' && tabAnalysers && ytPlaying ? tabAnalysers
-    : mode === 'file' && fileAnalysers && !audioEl.paused ? fileAnalysers : null;
+    : mode === 'file' && fileAnalysers && !mediaEl.paused ? fileAnalysers : null;
+  const drive = an ? shape(an.map((a) => levelFrom(a, timeBuf)), peakState, resp) : [0, 0];
   ears.forEach((e, i) => {
-    e.lv = an ? levelFrom(an[i], timeBuf) : 0;
-    const target = setting * e.lv;
+    const target = setting * drive[i];
     e.v += (target - e.v) * SMOOTH;
     if (Math.abs(e.v - target) < .5) e.v = target;
   });
   const now = performance.now();
   if (now - lastSendAt >= SEND_INTERVAL) {
-    const cmd = buildCommand(ears[0].v, ears[1].v);
+    const cmd = buildCommand(ears[0].v, ears[1].v, range);
     if (cmd !== lastSent) { send(cmd); lastSent = cmd; lastSendAt = now; }
   }
 }, TICK);
 
 const render = () => {
   ears.forEach((e) => {
-    const a = Math.round(Math.abs(e.v)), cool = e.v < 0, p = toPwm(e.v);
+    const a = Math.round(Math.abs(e.v)), cool = e.v < 0, p = toPwm(e.v, range);
     e.val.textContent = describe(e.v);
     e.val.classList.toggle('cool', cool && a > 0);
     e.meter.style.width = `${a}%`;
     e.meter.style.background = cool ? 'var(--cool)' : 'var(--warm)';
     e.card.style.boxShadow = a ? `0 0 ${10 + a / 3}px ${cool ? 'rgba(95,178,255,.35)' : 'rgba(255,122,92,.35)'}` : 'none';
-    e.level.textContent = `level ${Math.round(e.lv * 100)}% · ${p.pwm ? p.type + p.pwm : 'off'}`;
+    e.pwm.textContent = p.pwm ? `${p.type}${p.pwm}` : 'off';
   });
   requestAnimationFrame(render);
 };
@@ -339,12 +388,9 @@ $('estop').addEventListener('click', () => {
   temp.value = 0; updateTemp();
   ears.forEach((e) => { e.v = 0; });
   ytPlayer?.pauseVideo?.();
-  audioEl.pause();
+  mediaEl.pause();
   if (tabStream) stopSync();
-  send('stop'); lastSent = 'stop';
+  stopOutput();
   log('EMERGENCY STOP');
 });
 addEventListener('pagehide', () => { if (writer) writer.write(enc.encode('stop\n')).catch(() => {}); });
-
-// Exposed for testing
-window.MoHeatControl = { toPwm, buildCommand, parseYouTube };

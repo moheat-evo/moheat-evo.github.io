@@ -9,82 +9,80 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="control.css?v=1" />
+  <link rel="stylesheet" href="control.css?v=2" />
 </head>
 <body>
   <header class="bar">
     <a class="brand" href="./">MoHeat <span>Evo</span></a>
-    <span class="bar-title">Device control</span>
-    <button class="estop" id="estop" type="button">■ Emergency stop</button>
+    <div class="device">
+      <select id="portSelect" aria-label="Serial port"></select>
+      <button class="btn sm" id="addPort" type="button" title="Authorize a new USB or Bluetooth serial port">+ Add</button>
+      <button class="btn sm primary" id="connectBtn" type="button" disabled>Connect</button>
+      <p class="status" id="deviceStatus"><i></i><span>Not connected</span></p>
+    </div>
+    <button class="estop" id="estop" type="button">■ STOP</button>
   </header>
 
-  <p class="unsupported" id="unsupported" hidden>This page needs <b>Web Serial</b> and <b>tab audio capture</b>, which are available in desktop <b>Chrome</b> or <b>Edge</b>. Please open it there.</p>
+  <p class="unsupported" id="unsupported" hidden>Needs <b>Web Serial</b> and <b>tab audio capture</b> — open this page in desktop <b>Chrome</b> or <b>Edge</b>.</p>
 
-  <main class="grid">
-    <!-- 1. Device -->
-    <section class="panel">
-      <h2><span>01</span>Device</h2>
-      <label class="field">
-        <span>Serial port</span>
-        <select id="portSelect"></select>
-      </label>
-      <div class="row">
-        <button class="btn" id="addPort" type="button">+ Add device…</button>
-        <button class="btn primary" id="connectBtn" type="button" disabled>Connect</button>
-      </div>
-      <p class="status" id="deviceStatus"><i></i><span>Not connected</span></p>
-      <p class="hint">USB: 115200 baud. Bluetooth: pair <code>MoHeatEvo</code> in system settings first. Output only reaches the ear cups while the contact sensor is touched.</p>
-    </section>
-
-    <!-- 2. Source -->
-    <section class="panel">
-      <h2><span>02</span>Audio source</h2>
-      <form class="row" id="ytForm">
+  <main class="layout">
+    <!-- Video -->
+    <section class="stage">
+      <form class="source" id="ytForm">
         <input id="ytUrl" type="url" placeholder="Paste a YouTube link" autocomplete="off" />
         <button class="btn" type="submit">Load</button>
+        <span class="or">or</span>
+        <label class="btn" for="mediaFile">Upload video / audio</label>
+        <input id="mediaFile" type="file" accept="video/*,audio/*" hidden />
       </form>
-      <div class="player" id="playerWrap"><div id="ytPlayer"></div><p class="player-empty">No video loaded</p></div>
-      <div class="row">
-        <button class="btn primary" id="syncBtn" type="button" disabled>Start thermal sync</button>
-        <label class="btn ghost" for="audioFile">or use an audio file</label>
-        <input id="audioFile" type="file" accept="audio/*" hidden />
+      <div class="player" id="playerWrap">
+        <div id="ytPlayer"></div>
+        <video id="mediaEl" controls playsinline hidden></video>
+        <p class="player-empty">Paste a YouTube link or upload a video</p>
       </div>
-      <audio id="audioPlayer" controls hidden></audio>
-      <p class="status" id="sourceStatus"><i></i><span>Load a video, then start sync</span></p>
-      <p class="hint">When the browser asks what to share, choose <b>This tab</b> and turn on <b>Share tab audio</b>.</p>
+      <div class="source-row">
+        <button class="btn primary" id="syncBtn" type="button" hidden>Start thermal sync</button>
+        <p class="status" id="sourceStatus"><i></i><span>No source</span></p>
+      </div>
     </section>
 
-    <!-- 3. Temperature + output -->
-    <section class="panel wide">
-      <h2><span>03</span>Temperature &amp; output</h2>
-      <div class="temp">
-        <div class="temp-head"><span>Feedback</span><b id="tempValue">60% warmth</b></div>
+    <!-- Controls -->
+    <aside class="side">
+      <div class="card">
+        <div class="card-head"><span>Temperature</span><b id="tempValue">60% warmth</b></div>
         <input id="tempRange" type="range" min="-100" max="100" value="60" aria-label="Temperature feedback" />
-        <div class="temp-scale"><span>Cool</span><span>Off</span><span>Warm</span></div>
+        <div class="scale"><span>Cool</span><span>Off</span><span>Warm</span></div>
       </div>
+
       <div class="ears">
-        <div class="ear-card" data-ch="0">
-          <span class="ear-side">LEFT</span>
-          <b class="ear-val">Off</b>
-          <div class="meter"><i></i></div>
-          <span class="ear-level">level 0%</span>
-        </div>
-        <div class="ear-card" data-ch="1">
-          <span class="ear-side">RIGHT</span>
-          <b class="ear-val">Off</b>
-          <div class="meter"><i></i></div>
-          <span class="ear-level">level 0%</span>
+        <div class="ear" data-ch="0"><span class="ear-side">LEFT</span><b class="ear-val">Off</b><div class="meter"><i></i></div><span class="ear-pwm">off</span></div>
+        <div class="ear" data-ch="1"><span class="ear-side">RIGHT</span><b class="ear-val">Off</b><div class="meter"><i></i></div><span class="ear-pwm">off</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span>Level response</span></div>
+        <label class="toggle"><input id="autoNorm" type="checkbox" checked /><span>Auto-normalize to the loudest part</span></label>
+        <label class="field" id="gainField"><span>Sensitivity <b id="gainValue">×1.0</b></span><input id="gain" type="range" min="1" max="4" step=".1" value="1" /></label>
+        <label class="field"><span>Noise gate <b id="gateValue">8%</b></span><input id="gate" type="range" min="0" max="30" step="1" value="8" /></label>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span>Output range (PWM)</span><button class="link" id="resetRange" type="button">Reset</button></div>
+        <div class="range-grid">
+          <label>Heat max<input id="heatMax" type="number" min="0" max="255" value="200" /></label>
+          <label>Cool min<input id="coolMin" type="number" min="0" max="255" value="35" /></label>
+          <label>Cool max<input id="coolMax" type="number" min="0" max="255" value="80" /></label>
         </div>
       </div>
-      <p class="cmd">Last command <code id="lastCmd">—</code></p>
-      <details class="log">
-        <summary>Serial log</summary>
-        <pre id="log"></pre>
-      </details>
-    </section>
+
+      <div class="card cmd-card">
+        <div class="card-head"><span>Last command</span><code id="lastCmd">—</code></div>
+        <details class="log"><summary>Serial log</summary><pre id="log"></pre></details>
+      </div>
+    </aside>
   </main>
 
   <script src="https://www.youtube.com/iframe_api"></script>
-  <script src="control.js?v=1"></script>
+  <script src="control.js?v=2"></script>
 </body>
 </html>

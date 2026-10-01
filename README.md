@@ -25,11 +25,12 @@ assets/
 ```
 
 ## Device control page
-`control.html` (+ `control.css`, `control.js`) drives the MoHeat Evo firmware over Web Serial. Desktop Chrome/Edge only; not linked from the main page.
-- **Device**: ports you've authorized are listed automatically (and refresh on plug/unplug); "+ Add device…" authorizes a new USB or paired Bluetooth (SPP) port; "Connect" opens it at 115200 baud.
-- **Source**: paste a YouTube link, then "Start thermal sync" and share *This tab* with *Share tab audio* on. An audio file works too.
-- **Mapping** (matches the firmware): slider −100…+100 × per-channel level → heat `H0–200` / cool `C35–80`, sent as `LH… RH…` at most 10×/s, only when it changes. All zero → `stop`.
-- **Safety**: `stop` on pause, end, sync off, disconnect, page close, and the Emergency stop button.
+`control.html` (+ `control.css`, `control.js`) drives the MoHeat Evo firmware over Web Serial. Desktop Chrome/Edge only; not linked from the main page. One-screen layout: device bar on top, large video, controls on the right.
+- **Device**: authorized ports are listed automatically (refresh on plug/unplug); "+ Add" authorizes a new USB or paired Bluetooth (SPP) port; "Connect" opens it at 115200 baud.
+- **Source**: paste a YouTube link (then "Start thermal sync", share *This tab* with *Share tab audio*), or upload a local video/audio file (no sharing needed).
+- **Level response**: *Auto-normalize* (default) tracks the loudest recent passage so peaks reach full output; a noise gate zeroes background noise; with auto off, *Sensitivity* (×1–×4) scales the level instead.
+- **Mapping**: slider −100…+100 × per-channel drive → heat `H0–heatMax` / cool `C coolMin–coolMax` (defaults 200 / 35–80 from the firmware; heat can go to 255). Sent as `LH… RH…` at most 10×/s, only on change; all zero → `stop`. Settings persist in the browser.
+- **Safety**: `stop` on pause, end, sync off, disconnect, page close, and the STOP button.
 - The firmware in `arduino/` is kept out of the repo (`.gitignore`).
 
 ## Publishing updates
