@@ -37,6 +37,6 @@ Hero (joint research badge, SIGGRAPH Asia 2026 film, key points) → interactive
 
 ## Contact form
 Messages go to `moheat-evo@outlook.com` (`CONTACT_EMAIL` in `script.js`).
-- **Without a key** (current): "Send message" opens the visitor's mail app with the message pre-filled.
-- **With a key**: create a free Access Key at [web3forms.com](https://web3forms.com) for that address and paste it into `WEB3FORMS_KEY` in `script.js`. Submissions are then delivered automatically; if sending fails, the form offers an "Email us directly" link instead.
+- **With a key** (current, set in `WEB3FORMS_KEY`): submissions are delivered automatically. Without a key, "Send message" opens the visitor's mail app instead.
+- To use another inbox, create a free Access Key at [web3forms.com](https://web3forms.com) for that address and paste it into `WEB3FORMS_KEY` in `script.js`. Submissions are then delivered automatically; if sending fails, the form offers an "Email us directly" link instead.
 - The Access Key is designed to be public in front-end code; it can only send form messages to your inbox.
