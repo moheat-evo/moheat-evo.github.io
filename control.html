@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#090708" />
+  <meta name="robots" content="noindex" />
+  <title>MoHeat Evo — Device Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="control.css?v=1" />
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="./">MoHeat <span>Evo</span></a>
+    <span class="bar-title">Device control</span>
+    <button class="estop" id="estop" type="button">■ Emergency stop</button>
+  </header>
+
+  <p class="unsupported" id="unsupported" hidden>This page needs <b>Web Serial</b> and <b>tab audio capture</b>, which are available in desktop <b>Chrome</b> or <b>Edge</b>. Please open it there.</p>
+
+  <main class="grid">
+    <!-- 1. Device -->
+    <section class="panel">
+      <h2><span>01</span>Device</h2>
+      <label class="field">
+        <span>Serial port</span>
+        <select id="portSelect"></select>
+      </label>
+      <div class="row">
+        <button class="btn" id="addPort" type="button">+ Add device…</button>
+        <button class="btn primary" id="connectBtn" type="button" disabled>Connect</button>
+      </div>
+      <p class="status" id="deviceStatus"><i></i><span>Not connected</span></p>
+      <p class="hint">USB: 115200 baud. Bluetooth: pair <code>MoHeatEvo</code> in system settings first. Output only reaches the ear cups while the contact sensor is touched.</p>
+    </section>
+
+    <!-- 2. Source -->
+    <section class="panel">
+      <h2><span>02</span>Audio source</h2>
+      <form class="row" id="ytForm">
+        <input id="ytUrl" type="url" placeholder="Paste a YouTube link" autocomplete="off" />
+        <button class="btn" type="submit">Load</button>
+      </form>
+      <div class="player" id="playerWrap"><div id="ytPlayer"></div><p class="player-empty">No video loaded</p></div>
+      <div class="row">
+        <button class="btn primary" id="syncBtn" type="button" disabled>Start thermal sync</button>
+        <label class="btn ghost" for="audioFile">or use an audio file</label>
+        <input id="audioFile" type="file" accept="audio/*" hidden />
+      </div>
+      <audio id="audioPlayer" controls hidden></audio>
+      <p class="status" id="sourceStatus"><i></i><span>Load a video, then start sync</span></p>
+      <p class="hint">When the browser asks what to share, choose <b>This tab</b> and turn on <b>Share tab audio</b>.</p>
+    </section>
+
+    <!-- 3. Temperature + output -->
+    <section class="panel wide">
+      <h2><span>03</span>Temperature &amp; output</h2>
+      <div class="temp">
+        <div class="temp-head"><span>Feedback</span><b id="tempValue">60% warmth</b></div>
+        <input id="tempRange" type="range" min="-100" max="100" value="60" aria-label="Temperature feedback" />
+        <div class="temp-scale"><span>Cool</span><span>Off</span><span>Warm</span></div>
+      </div>
+      <div class="ears">
+        <div class="ear-card" data-ch="0">
+          <span class="ear-side">LEFT</span>
+          <b class="ear-val">Off</b>
+          <div class="meter"><i></i></div>
+          <span class="ear-level">level 0%</span>
+        </div>
+        <div class="ear-card" data-ch="1">
+          <span class="ear-side">RIGHT</span>
+          <b class="ear-val">Off</b>
+          <div class="meter"><i></i></div>
+          <span class="ear-level">level 0%</span>
+        </div>
+      </div>
+      <p class="cmd">Last command <code id="lastCmd">—</code></p>
+      <details class="log">
+        <summary>Serial log</summary>
+        <pre id="log"></pre>
+      </details>
+    </section>
+  </main>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="control.js?v=1"></script>
+</body>
+</html>
