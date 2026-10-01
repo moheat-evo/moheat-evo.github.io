@@ -209,3 +209,8 @@ contactForm.addEventListener('submit', async (e) => {
   }
 });
 contactForm.addEventListener('input', (e) => e.target.closest('.cf-field')?.classList.remove('is-invalid'));
+
+// "Watch on this page" press cards open the matching video in the modal.
+document.querySelectorAll('[data-play]').forEach((btn) => btn.addEventListener('click', () => {
+  document.querySelector(`.vid-card[data-src*="${btn.dataset.play}"]`)?.click();
+}));
