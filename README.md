@@ -36,7 +36,7 @@ When you change `styles.css` or `script.js`, bump the `?v=` number on their tags
 Hero (joint research badge, SIGGRAPH Asia 2026 film, key points) → interactive demo → voice use cases 01–04 → media use cases 05–08 + partner strip → CES / SIGGRAPH Asia / NHK videos → UTokyo × Suntory joint research → Kickstarter CTA → Contact.
 
 ## Contact form
-The Contact form posts to [FormSubmit](https://formsubmit.co) and is delivered to `xujiayi19950614@gmail.com` (set in `script.js` as `CONTACT_EMAIL`).
-- The first submission triggers an activation email from FormSubmit to that inbox — click the link once, and later messages are delivered normally.
-- Test it from a local server or the deployed site (not by opening `index.html` directly via `file://`).
-- If sending fails, the form shows a "Email us directly" link that opens the visitor's mail app instead.
+Messages go to `moheat-evo@outlook.com` (`CONTACT_EMAIL` in `script.js`).
+- **Without a key** (current): "Send message" opens the visitor's mail app with the message pre-filled.
+- **With a key**: create a free Access Key at [web3forms.com](https://web3forms.com) for that address and paste it into `WEB3FORMS_KEY` in `script.js`. Submissions are then delivered automatically; if sending fails, the form offers an "Email us directly" link instead.
+- The Access Key is designed to be public in front-end code; it can only send form messages to your inbox.

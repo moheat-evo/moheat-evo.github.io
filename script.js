@@ -160,9 +160,10 @@ document.getElementById('closeModal').addEventListener('click', closeVideoModal)
 modal.addEventListener('click', (e) => { if (e.target === modal) closeVideoModal(); });
 modal.addEventListener('cancel', () => { modalBody.innerHTML = ''; });
 
-// Contact form → email via FormSubmit (static site, no backend).
-// The first submission sends an activation email to CONTACT_EMAIL; messages are delivered once it is confirmed.
-const CONTACT_EMAIL = 'xujiayi19950614@gmail.com';
+// Contact form → email via Web3Forms (static site, no backend).
+// Until WEB3FORMS_KEY is set, "Send" opens the visitor's mail app with the message pre-filled to CONTACT_EMAIL.
+const CONTACT_EMAIL = 'moheat-evo@outlook.com';
+const WEB3FORMS_KEY = ''; // paste the Access Key from web3forms.com here
 const contactForm = document.getElementById('contactForm');
 const cfStatus = document.getElementById('cfStatus');
 const setStatus = (html, cls = '') => { cfStatus.innerHTML = html; cfStatus.className = `cf-status ${cls}`; };
@@ -186,20 +187,28 @@ contactForm.addEventListener('submit', async (e) => {
   if (!ok) { setStatus('Please fill in your name, a valid email and a message.', 'err'); return; }
   if (d._honey) return;
 
+  if (!WEB3FORMS_KEY) {
+    window.location.href = mailtoFallback(d);
+    setStatus(`Your email app should open with the message ready to send. If it doesn't, write to <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a>.`, 'ok');
+    return;
+  }
+
   const btn = contactForm.querySelector('button[type="submit"]');
   btn.disabled = true;
   setStatus('Sending…');
   try {
-    const res = await fetch(`https://formsubmit.co/ajax/${CONTACT_EMAIL}`, {
+    const res = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        subject: `[MoHeat Evo] ${d.topic} — ${d.name}`,
+        from_name: 'MoHeat Evo website',
         name: d.name, email: d.email, topic: d.topic, message: d.message,
-        _subject: `[MoHeat Evo] ${d.topic} — ${d.name}`, _replyto: d.email, _template: 'table',
       }),
     });
     const json = await res.json().catch(() => ({}));
-    if (!res.ok || String(json.success) !== 'true') throw new Error(json.message || res.statusText);
+    if (!res.ok || json.success !== true) throw new Error(json.message || res.statusText);
     contactForm.reset();
     setStatus('Thanks! Your message has been sent — we\'ll get back to you soon.', 'ok');
   } catch (err) {
