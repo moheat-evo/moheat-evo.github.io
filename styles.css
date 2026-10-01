@@ -138,8 +138,8 @@
 
 .modal-video{width:100%;aspect-ratio:16/9;border-radius:18px;background:#000;display:block}
 .modal-video.is-vertical{aspect-ratio:auto;max-height:72vh;width:auto;margin:auto}
-@media (max-width:900px){.media-grid{grid-template-columns:1fr 1fr}.vid-card.feature,.press-card{grid-column:span 2}}
-@media (max-width:620px){.media-grid{grid-template-columns:1fr}.vid-card.feature,.press-card{grid-column:span 1}.vid-card.vertical{grid-row:auto;aspect-ratio:9/14}}
+@media (max-width:900px){.media-grid{grid-template-columns:1fr 1fr}.vid-card.feature{grid-column:span 2}}
+@media (max-width:620px){.media-grid{grid-template-columns:1fr}.vid-card.feature{grid-column:span 1}.vid-card.vertical{grid-row:auto;aspect-ratio:9/14}}
 .modal-player{display:flex;justify-content:center}
 
 /* Joint research badge (hero) */
@@ -208,17 +208,10 @@ section[id]{scroll-margin-top:70px}
 .kick-actions .text-link{font-size:14px;font-weight:700;color:#eadfe1}
 .kick-actions .text-link:hover{color:#fff}
 .hero-points{margin-top:34px}
-.press-card{grid-column:span 2;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:28px 32px;border-radius:24px;text-decoration:none;color:#fff;border:1px solid #ffffff14;background:linear-gradient(120deg,#5fb2ff12,#ffffff05 45%,#ff7a5c26);transition:border-color .3s,transform .3s}
-.press-card:hover{border-color:#ff927b66;transform:translateY(-4px)}
-.press-kicker{font-size:11px;font-weight:800;letter-spacing:.16em;color:#efc1b6}
-.press-card h3{font:700 clamp(22px,2.2vw,30px)/1.15 Manrope;letter-spacing:-.03em;margin:0}
-.press-card p{margin:0;color:#bdb1b3;font-size:15px}
-.press-link{margin-top:8px;font-weight:800;font-size:14px;color:var(--warm2)}
-.press-link b{display:inline-block;transition:transform .25s}.press-card:hover .press-link b{transform:translate(3px,-3px)}
 @media (max-width:900px){.kick-actions{margin-top:20px}}
 
 .hero-points li{align-items:start}.dot-temp{margin-top:6px}
-@media (max-width:620px){.press-card{grid-column:span 1}}
+
 
 /* Exhibitions */
 .ex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -264,3 +257,6 @@ section[id]{scroll-margin-top:70px}
 .news-alt:hover{color:#fff}
 @media (max-width:900px){.news-grid{grid-template-columns:1fr 1fr}}
 @media (max-width:620px){.news-grid{grid-template-columns:1fr}.news-card{min-height:0}}
+.news-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.news-inquiry{font-size:14px;font-weight:800;color:var(--warm2);text-decoration:none;padding:10px 16px;border:1px solid #ff927b55;border-radius:999px;transition:background .2s}
+.news-inquiry:hover{background:#ff927b1a}
