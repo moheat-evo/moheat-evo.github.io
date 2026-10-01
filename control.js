@@ -8,7 +8,7 @@ const SMOOTH = .18;             // thermal inertia per tick
 const PEAK_DECAY = .004;        // auto-normalize: reference level falls ~0.08/s after a loud passage
 const PEAK_FLOOR = .25;         // never treat near-silence as "loudest"
 const SPP_UUID = '00001101-0000-1000-8000-00805f9b34fb';
-const DEFAULT_RANGE = { heatMax: 200, coolMin: 35, coolMax: 80 };   // firmware HOT_PWM_MAX / COLD_PWM_MIN / COLD_PWM_MAX
+const DEFAULT_RANGE = { heatMin: 0, heatMax: 200, coolMin: 35, coolMax: 80 };   // firmware HOT_PWM_MIN/MAX, COLD_PWM_MIN/MAX
 let lastSent = '', lastSendAt = 0;
 
 // ---------- Mapping ----------
@@ -16,7 +16,7 @@ let lastSent = '', lastSendAt = 0;
 const toPwm = (v, r) => {
   const a = Math.min(1, Math.abs(v) / 100);
   if (a < .01) return { type: 'H', pwm: 0 };
-  if (v > 0) return { type: 'H', pwm: Math.round(a * r.heatMax) };
+  if (v > 0) return { type: 'H', pwm: Math.round(r.heatMin + a * (r.heatMax - r.heatMin)) };
   return { type: 'C', pwm: Math.round(r.coolMin + a * (r.coolMax - r.coolMin)) };
 };
 const buildCommand = (l, rgt, r) => {
@@ -54,7 +54,7 @@ const ytForm = $('ytForm'), ytUrl = $('ytUrl'), playerWrap = $('playerWrap'), sy
 const mediaFile = $('mediaFile'), mediaEl = $('mediaEl');
 const temp = $('tempRange'), tempValue = $('tempValue'), lastCmdEl = $('lastCmd'), logEl = $('log');
 const autoNorm = $('autoNorm'), gain = $('gain'), gate = $('gate');
-const rangeInputs = { heatMax: $('heatMax'), coolMin: $('coolMin'), coolMax: $('coolMax') };
+const rangeInputs = { heatMin: $('heatMin'), heatMax: $('heatMax'), coolMin: $('coolMin'), coolMax: $('coolMax') };
 const ears = [...document.querySelectorAll('.ear')].map((card) => ({
   card, val: card.querySelector('.ear-val'), meter: card.querySelector('.meter i'), pwm: card.querySelector('.ear-pwm'), v: 0,
 }));
@@ -81,6 +81,7 @@ const clampPwm = (n) => Math.min(255, Math.max(0, Math.round(+n || 0)));
 const syncRangeInputs = () => Object.entries(rangeInputs).forEach(([k, el]) => { el.value = range[k]; });
 Object.entries(rangeInputs).forEach(([k, el]) => el.addEventListener('change', () => {
   range[k] = clampPwm(el.value);
+  if (range.heatMin > range.heatMax) range.heatMin = range.heatMax;
   if (range.coolMin > range.coolMax) range.coolMin = range.coolMax;
   syncRangeInputs(); store.set('range', range); lastSent = '';
 }));
