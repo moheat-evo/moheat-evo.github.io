@@ -1,6 +1,8 @@
-# MoHeat Evo Kickstarter landing page prototype
+# MoHeat Evo — campaign site
 
-Static prototype: no build step required.
+Live: https://moheat-evo.github.io/
+
+Static site, no build step.
 
 ## Open locally
 Open `index.html` in a browser, or run:
@@ -28,12 +30,12 @@ git add -A && git commit -m "Describe the change" && git push
 ```
 When you change `styles.css` or `script.js`, bump the `?v=` number on their tags in `index.html` so browsers (especially phones) load the new files instead of a cached copy.
 
-## Replace before launch
-- Replace the Kickstarter CTA placeholder `href="#"` with the live campaign URL.
+## Before the Kickstarter launch
+- Point the "Get notified at launch" button (`#back` section) to the live campaign URL.
 - Verify rights/permissions for third-party reaction videos, media screenshots and logos.
 
-## Suggested content order
-Hero (joint research badge, SIGGRAPH Asia 2026 film, key points) → interactive demo → voice use cases 01–04 → media use cases 05–08 + partner strip → CES / SIGGRAPH Asia / NHK videos → UTokyo × Suntory joint research → Kickstarter CTA → Contact.
+## Page order
+Hero (joint-research badge, SIGGRAPH Asia 2026 film, key points) → interactive thermal demo → voice use cases 01–04 → media use cases 05–08 + partner strip → media wall + press coverage → exhibitions → UTokyo × Suntory joint research → Kickstarter notify → contact form.
 
 ## Contact form
 Messages go to `moheat-evo@outlook.com` (`CONTACT_EMAIL` in `script.js`).
