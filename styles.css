@@ -261,3 +261,19 @@ section[id]{scroll-margin-top:70px}
 .news-inquiry{font-size:14px;font-weight:800;color:var(--warm2);text-decoration:none;padding:10px 16px;border:1px solid #ff927b55;border-radius:999px;transition:background .2s}
 .news-inquiry:hover{background:#ff927b1a}
 .contact-copy>p.contact-mail{margin-top:18px;font-size:15px;color:#7b6b6e}.contact-mail a{color:var(--ink);font-weight:700;text-decoration:none;border-bottom:2px solid var(--warm)}.contact-mail a:hover{color:var(--warm)}
+
+/* Compact use-case grids */
+.story-media{aspect-ratio:4/5}
+.story-media img{object-position:center 55%}
+@media (max-width:620px){
+  .story-grid,.use-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .story-card{border-radius:18px}
+  .story-content{margin-top:-22px;padding:0 12px 14px}
+  .story-content h3{font-size:16px;line-height:1.2;margin:4px 0 0}
+  .story-content p{display:none}
+  .use-card{border-radius:18px}
+  .use-body{padding:12px 12px 14px}
+  .use-card h3{font-size:16px;margin-bottom:10px}
+  .use-cues{gap:6px}
+  .cue{padding:4px 8px;font-size:11px}
+}
