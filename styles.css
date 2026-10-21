@@ -118,7 +118,7 @@
 /* Media wall: real campaign videos */
 .media .container{container-type:inline-size}
 /* Rows are one 16:9 cell tall; features fill 2×2 cells, the vertical clip 1×2 */
-.media-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:calc((100cqw - 28px) / 3 * 9 / 16);gap:14px}
+.media-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:calc((100cqw - 42px) / 4 * 9 / 16);grid-auto-flow:dense;gap:14px}
 .media-grid .vid-card{aspect-ratio:auto}
 .vid-card.feature{grid-row:span 2}
 .vid-card{position:relative;aspect-ratio:16/9;border:0;padding:0;border-radius:24px;overflow:hidden;cursor:pointer;background:#000;color:#fff;text-align:left;box-shadow:0 15px 50px #0004;font:inherit}
@@ -132,17 +132,18 @@
 .vid-top .tag{background:#0006;backdrop-filter:blur(8px)}
 .vid-bottom{bottom:18px;gap:14px}
 .vid-bottom h3{font:700 18px Manrope;letter-spacing:-.02em;margin:0}
-.vid-card.feature .vid-bottom h3{font-size:clamp(22px,2.4vw,32px)}
+.vid-card.feature .vid-bottom h3{font-size:clamp(20px,2vw,26px)}
 .vid-card .play{flex:none;width:46px;height:46px;font-size:14px;transition:transform .25s}
 .vid-card.feature .play{width:60px;height:60px;font-size:18px}
 .vid-card:hover .play{transform:scale(1.08)}
+@media (min-width:901px){.vid-card:not(.feature) .vid-bottom h3{font-size:15px}.vid-card:not(.feature) .play{width:38px;height:38px;font-size:12px}.vid-card:not(.feature) .vid-bottom{gap:10px}}
 
 
 
 
 .modal-video{width:100%;aspect-ratio:16/9;border-radius:18px;background:#000;display:block}
 .modal-video.is-vertical{aspect-ratio:auto;max-height:72vh;width:auto;margin:auto}
-@media (max-width:900px){.media-grid{grid-template-columns:1fr 1fr;grid-auto-rows:calc((100cqw - 14px) / 2 * 9 / 16)}.vid-card.feature{grid-column:span 2}.media-grid .vid-card:first-child{order:-2}.media-grid .vid-card.vertical{order:-1}}
+@media (max-width:900px){.media-grid{grid-template-columns:1fr 1fr;grid-auto-rows:calc((100cqw - 14px) / 2 * 9 / 16)}.vid-card.feature{grid-column:span 2}}
 @media (max-width:620px){.media-grid{grid-template-columns:1fr}.vid-card.feature{grid-column:span 1}.vid-card.vertical{grid-row:auto;aspect-ratio:9/14}}
 .modal-player{display:flex;justify-content:center}
 
