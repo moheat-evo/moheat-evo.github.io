@@ -116,12 +116,14 @@
 @media (max-width:900px){.partner-strip{flex-direction:column;align-items:flex-start;padding:26px}}
 
 /* Media wall: real campaign videos */
-.media-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-flow:dense;gap:14px}
+.media .container{container-type:inline-size}
+/* Rows are one 16:9 cell tall; features fill 2×2 cells, the vertical clip 1×2 */
+.media-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:calc((100cqw - 28px) / 3 * 9 / 16);gap:14px}
+.media-grid .vid-card{aspect-ratio:auto}
+.vid-card.feature{grid-row:span 2}
 .vid-card{position:relative;aspect-ratio:16/9;border:0;padding:0;border-radius:24px;overflow:hidden;cursor:pointer;background:#000;color:#fff;text-align:left;box-shadow:0 15px 50px #0004;font:inherit}
 .vid-card.feature{grid-column:span 2}
 .vid-card.vertical{grid-row:span 2;aspect-ratio:auto}
-.vid-card.wide{grid-column:1/-1;aspect-ratio:21/9}
-.vid-card.wide video{object-fit:contain}
 .vid-card video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
 .vid-card:hover video{transform:scale(1.03)}
 .vid-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#0008 0,transparent 26%,transparent 42%,#000000d9 78%,#000 100%);pointer-events:none}
@@ -140,7 +142,7 @@
 
 .modal-video{width:100%;aspect-ratio:16/9;border-radius:18px;background:#000;display:block}
 .modal-video.is-vertical{aspect-ratio:auto;max-height:72vh;width:auto;margin:auto}
-@media (max-width:900px){.media-grid{grid-template-columns:1fr 1fr}.vid-card.feature{grid-column:span 2}}
+@media (max-width:900px){.media-grid{grid-template-columns:1fr 1fr;grid-auto-rows:calc((100cqw - 14px) / 2 * 9 / 16)}.vid-card.feature{grid-column:span 2}.media-grid .vid-card:first-child{order:-2}.media-grid .vid-card.vertical{order:-1}}
 @media (max-width:620px){.media-grid{grid-template-columns:1fr}.vid-card.feature{grid-column:span 1}.vid-card.vertical{grid-row:auto;aspect-ratio:9/14}}
 .modal-player{display:flex;justify-content:center}
 
@@ -282,11 +284,10 @@ section[id]{scroll-margin-top:70px}
 
 /* Compact media + press on phones */
 @media (max-width:620px){
-  .media-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .media-grid{grid-template-columns:1fr 1fr;grid-auto-rows:calc((100cqw - 10px) / 2 * 9 / 16);gap:10px}
   .vid-card{border-radius:16px}
   .vid-card.feature{grid-column:span 2}
   .vid-card.vertical{grid-row:span 2;aspect-ratio:auto}
-  .vid-card.wide{aspect-ratio:16/9}
   .vid-top,.vid-bottom{left:12px;right:12px}
   .vid-top{top:10px;font-size:9px}
   .vid-top .tag{padding:4px 7px}
