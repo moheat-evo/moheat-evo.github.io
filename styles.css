@@ -115,6 +115,30 @@
 .partner-strip .pill{flex:none}
 @media (max-width:900px){.partner-strip{flex-direction:column;align-items:flex-start;padding:26px}}
 
+/* Call for composers (ThermoTune research direction 03) */
+.composer{margin-top:18px;padding:38px;border-radius:var(--radius);border:1px solid #ffffff14;background:radial-gradient(circle at 92% 0,#ff7a5c26,transparent 42%),radial-gradient(circle at 0 100%,#5fb2ff1c,transparent 45%),#ffffff05}
+.composer-main{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.composer h3{font:700 clamp(32px,3.8vw,50px)/1.04 Manrope;letter-spacing:-.04em;margin:14px 0 16px}
+.composer-copy>p{margin:0;color:#c9bec0;font-size:16px;line-height:1.7;max-width:540px}
+.composer-offer{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:10px}
+.composer-offer li{display:flex;flex-direction:column;gap:2px;padding:12px 0 12px 18px;border-left:2px solid;border-image:linear-gradient(var(--cool),var(--warm)) 1}
+.composer-offer b{font-size:15px}
+.composer-offer span{font-size:13px;color:#a99ea0}
+.composer-cta{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:28px}
+.composer-who{font-size:12px;letter-spacing:.04em;color:#a99ea0}
+.composer-media{position:relative;margin:0;border-radius:22px;overflow:hidden;aspect-ratio:5/4;outline:1px solid #ffffff14;outline-offset:-1px;box-shadow:0 30px 80px #0007}
+.composer-media img{width:100%;height:100%;object-fit:cover;object-position:72% 50%;display:block}
+.composer-media::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,#000a,transparent 40%)}
+.composer-media figcaption{position:absolute;left:18px;bottom:18px;z-index:1;display:flex;gap:8px;flex-wrap:wrap}
+.composer-media .cue{backdrop-filter:blur(8px)}
+.composer-steps{list-style:none;margin:38px 0 0;padding:28px 0 0;border-top:1px solid #ffffff14;display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
+.composer-steps span{font:700 12px Manrope;letter-spacing:.14em;color:var(--warm)}
+.composer-steps li:nth-child(-n+2) span{color:var(--cool)}
+.composer-steps h4{font:700 17px Manrope;letter-spacing:-.01em;margin:8px 0 6px}
+.composer-steps p{margin:0;font-size:13px;line-height:1.55;color:#a99ea0}
+@media (max-width:900px){.composer{padding:26px}.composer-main{grid-template-columns:1fr;gap:28px}.composer-media{aspect-ratio:16/10}.composer-steps{grid-template-columns:1fr 1fr}}
+@media (max-width:620px){.composer{padding:22px 18px}.composer-steps{grid-template-columns:1fr;gap:18px}.composer-copy>p{font-size:15px}}
+
 /* Media wall: real campaign videos */
 .media .container{container-type:inline-size}
 /* Rows are one 16:9 cell tall; features fill 2×2 cells, the vertical clip 1×2 */
