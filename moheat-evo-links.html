@@ -55,9 +55,12 @@ h1 { margin: 0; font-family: Archivo, sans-serif; font-weight: 800; font-size: c
 .rule.yes { border-color: var(--cool); background: var(--cool-bg); } .rule.yes svg, .rule.yes b { color: var(--cool-ink); }
 .rule.no { border-color: var(--stop); background: var(--stop-bg); } .rule.no svg, .rule.no b { color: var(--stop); }
 .rule.photo { border-color: var(--line); background: var(--card); }
-.links { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-.links a { grid-column: span 2; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 46px; padding: 4px 6px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); text-decoration: none; font-size: 13.5px; font-weight: 600; line-height: 1.15; }
-.links a:nth-child(-n+2) { grid-column: span 3; font-size: 14.5px; }
+.links { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; }   /* row 1: site · demos; row 2: LinkedIn · Instagram · personal site · email */
+.links a { grid-column: span 3; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 46px; padding: 4px 6px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); text-decoration: none; font-size: 13.5px; font-weight: 600; line-height: 1.15; }
+.links a:nth-child(-n+2) { grid-column: span 6; font-size: 14.5px; }
+.links a.ig { gap: 5px; }
+.links a.ig svg { flex: none; width: 17px; height: 17px; }   /* a plain outline in the text colour, no brand colours */
+.links a.ig small { display: block; font-size: 10.5px; font-weight: 500; color: var(--ink-soft); }
 .links a:nth-child(2) { background: var(--on); color: var(--on-ink); border-color: var(--on); }
 .links a:hover { border-color: var(--warm); }
 .links a:focus-visible, .langs button:focus-visible { outline: 2px solid var(--warm); outline-offset: 2px; }
@@ -67,6 +70,7 @@ footer p { margin: 0; }
 @media (max-width: 430px) {   /* four languages (한국어 since 2026-11-11) still fit beside the title on phones */
   h1 { font-size: clamp(24px, 7vw, 32px); }
   .langs button { min-width: 36px; padding: 0 6px; font-size: 12px; }
+  .links a.ig svg { display: none; }   /* a quarter of a phone width: the label and the handle need all of it */
 }
 @media (min-width: 900px), (min-width: 560px) and (orientation: landscape) {
   .wrap { max-width: 1040px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
@@ -122,7 +126,7 @@ footer p { margin: 0; }
       r1: 'Try it', r1s: 'when staff are present',
       r2: 'Please do not touch', r2s: 'when no staff are present',
       r3: 'Photos OK', r3s: 'Sharing welcome',
-      site: 'Project site', demo: 'Try the demos', li: 'LinkedIn', me: 'Personal site', mail: 'Email',
+      site: 'Project site', demo: 'Try the demos', li: 'LinkedIn', ig: 'Instagram', me: 'Personal site', mail: 'Email',
       collab: 'Want to create with temperature? Creators, companies and researchers are welcome to get in touch.',
       by: 'XU Jiayi, Inami-Monnai Lab, RCAST, The University of Tokyo',
       joint: 'Joint research with Suntory Global Innovation Center',
@@ -134,7 +138,7 @@ footer p { margin: 0; }
       r1: '体験できます', r1s: 'スタッフ在席時',
       r2: '触らないで\nください', r2s: 'スタッフ不在時',
       r3: '撮影OK', r3s: 'SNS投稿も歓迎',
-      site: 'プロジェクトサイト', demo: 'デモを体験', li: 'LinkedIn', me: '個人サイト', mail: 'メール',
+      site: 'プロジェクトサイト', demo: 'デモを体験', li: 'LinkedIn', ig: 'Instagram', me: '個人サイト', mail: 'メール',
       collab: '温度を使った作品づくりや共同研究のパートナーを募集しています。お気軽にご連絡ください。',
       by: 'XU Jiayi（許 佳禕）東京大学 先端研 稲見・門内研究室',
       joint: 'サントリーグローバルイノベーションセンターとの共同研究',
@@ -146,7 +150,7 @@ footer p { margin: 0; }
       r1: '欢迎体验', r1s: '有工作人员时',
       r2: '请勿触摸', r2s: '没有工作人员时',
       r3: '可以拍照', r3s: '欢迎分享',
-      site: '项目网站', demo: '体验演示', li: 'LinkedIn', me: '个人网站', mail: '邮箱',
+      site: '项目网站', demo: '体验演示', li: 'LinkedIn', ig: 'Instagram', me: '个人网站', mail: '邮箱',
       collab: '欢迎内容创作者、企业和研究机构与我们合作，一起创作带有温度的内容。',
       by: 'XU Jiayi（许佳祎），东京大学 先端研 稻见・门内研究室',
       joint: '与三得利全球创新中心的联合研究',
@@ -158,7 +162,7 @@ footer p { margin: 0; }
       r1: '체험해 보세요', r1s: '스태프가 있을 때',
       r2: '만지지 말아 주세요', r2s: '스태프가 없을 때',
       r3: '사진 촬영 OK', r3s: 'SNS 공유 환영',
-      site: '프로젝트 사이트', demo: '데모 체험', li: 'LinkedIn', me: '개인 사이트', mail: '이메일',
+      site: '프로젝트 사이트', demo: '데모 체험', li: 'LinkedIn', ig: 'Instagram', me: '개인 사이트', mail: '이메일',
       collab: '온도로 함께 작품을 만들 크리에이터, 기업, 연구자 분들의 연락을 기다립니다.',
       by: 'XU Jiayi, 도쿄대학 첨단과학기술연구센터 이나미·몬나이 연구실',
       joint: '산토리 글로벌 이노베이션 센터와의 공동 연구',
@@ -168,9 +172,11 @@ footer p { margin: 0; }
     ['site', 'https://moheat-evo.github.io/'],
     ['demo', 'https://moheat-evo.github.io/#thermalDemo'],
     ['li', 'https://www.linkedin.com/in/jiayi-xu-b25979446/'],
+    ['ig', 'https://www.instagram.com/jiayi_xu614/', '@jiayi_xu614'],
     ['me', 'https://jiayi-xu-hci.github.io/'],
     ['mail', 'mailto:xu.jiayi@star.rcast.u-tokyo.ac.jp'],
   ];
+  const IG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none"/></svg>';
   const langs = document.getElementById('langs'), links = document.getElementById('links');
   const load = () => { try { const v = localStorage.getItem(KEY); return T[v] ? v : 'en'; } catch { return 'en'; } };
   const save = (v) => { try { localStorage.setItem(KEY, v); } catch {} };
@@ -180,8 +186,9 @@ footer p { margin: 0; }
     document.querySelectorAll('[data-t]').forEach((e) => { e.textContent = t[e.dataset.t]; });
     document.querySelectorAll('[data-alt]').forEach((e) => { e.alt = t[e.dataset.alt]; });
     langs.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.l === l)));
-    links.replaceChildren(...LINKS.map(([k, href]) => { const a = document.createElement('a'); a.href = href; if (href.startsWith('http')) { a.target = '_blank'; a.rel = 'noopener'; }
-      a.textContent = t[k]; return a; }));
+    links.replaceChildren(...LINKS.map(([k, href, handle]) => { const a = document.createElement('a'); a.href = href; if (href.startsWith('http')) { a.target = '_blank'; a.rel = 'noopener'; }
+      if (handle) { a.className = k; a.setAttribute('aria-label', `${t[k]} ${handle}`); a.innerHTML = IG; const s = el('span', t[k]); s.append(el('small', handle)); a.append(s); }
+      else a.textContent = t[k]; return a; }));
   }
   langs.append(...Object.keys(T).map((l) => { const b = el('button', NAMES[l]); b.type = 'button'; b.dataset.l = l; b.lang = l; b.addEventListener('click', () => { save(l); render(l); }); return b; }));
   render(load());
