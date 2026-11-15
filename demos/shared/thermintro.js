@@ -29,6 +29,7 @@
     ready: { en: 'They’re in', ja: 'つけました', zh: '戴好了' },
     hair: { en: 'Tuck your hair behind your ears', ja: '髪を耳にかけてください', zh: '请把头发别到耳后', ko: '머리카락을 귀 뒤로 넘겨 주세요' },
     hairSub: { en: 'Warmth and coolness need bare skin — they can’t get through hair.', ja: '温かさ・冷たさは、肌に直接ふれると感じられます。', zh: '让耳朵露出来——冷热要碰到皮肤才感觉得到。', ko: '따뜻함과 시원함은 피부에 닿아야 느껴져요.' },
+    hairSubW: { en: 'Warmth needs bare skin — it can’t get through hair.', ja: '温かさは、肌に直接ふれると感じられます。', zh: '让耳朵露出来——温热要碰到皮肤才感觉得到。', ko: '따뜻함은 피부에 닿아야 느껴져요.' },   // warm only / cooling fault: never mention cool
     hairOk: { en: 'Done', ja: 'できました', zh: '好了', ko: '했어요' },
     left: { en: 'Left ear · warm', ja: '左耳 · あたたかい', zh: '左耳 · 暖' },
     leftSub: { en: 'A gentle warmth on your LEFT ear.', ja: '左耳に、じんわりとした温かさ。', zh: '左耳会感到一阵温暖。' },
@@ -163,6 +164,7 @@
 
   // visitor option "warm only (no mist)" (kiosk start screen): device.js sends no cool at all; the guide leaves the cool steps out
   const WO = () => { try { return localStorage.getItem('moheat.warmOnly') === '1'; } catch { return false; } };
+  const WOH = () => { if (WO()) return true; try { return !!JSON.parse(localStorage.getItem('moheat.kiosk.cfg') || '{}').coolFault; } catch { return false; } };   // warm only or the kiosk's cooling-fault mode
   function mount(el, o = {}) {
     if (!document.getElementById('mi-css')) { const st = document.createElement('style'); st.id = 'mi-css'; st.textContent = css; document.head.appendChild(st); }
     const send = (line) => { try { o.send?.(line); } catch {} log.push(line); };
@@ -295,7 +297,7 @@
       } else if (st.id === 'staffA') {
         staffScreen('soundOk', 'hintA', () => show(STEPS.findIndex((x) => x.id === 'lr')));
       } else if (st.id === 'hair') {   // after the earbuds, before MoHeat Evo: the warm / cool pads must touch skin
-        A.innerHTML = `<h2>${tx('hair')}</h2>${HAIR}<p class="sub">${tx('hairSub')}</p><div class="row"><button type="button" class="go big1">${tx('hairOk')}</button></div>`;
+        A.innerHTML = `<h2>${tx('hair')}</h2>${HAIR}<p class="sub">${tx(WOH() ? 'hairSubW' : 'hairSub')}</p><div class="row"><button type="button" class="go big1">${tx('hairOk')}</button></div>`;
         A.querySelector('.go').addEventListener('click', next);
       } else if (st.id === 'fit') {   // the staff places the MoHeat Evo headset over the earbuds
         A.innerHTML = `<h2>${tx('fit')}</h2>${FIT}<p class="sub">${tx('fitSub')}</p><div class="row"><button type="button" class="go big1">${tx('staffGo')}</button></div>`;
