@@ -126,6 +126,7 @@ table.stat th { color: var(--dim); font-weight: 600; } table.stat td.n { text-al
 .q-more #comment { margin-top: 0; } .card-btns { margin-top: 0; align-items: center; }
 .q-thanks { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vmin; font: 700 clamp(20px, 4vmin, 40px)/1.3 var(--ff); animation: fadein .3s ease; }
 .q-thanks[hidden], .card-wrap[hidden] { display: none; }
+.q-thanks .contact { margin: 0; max-width: 34ch; text-align: center; font-size: clamp(16px, 2.8vmin, 30px); font-weight: 600; line-height: 1.35; }   /* big enough to scan from arm's length, a short friendly line under it */
 @keyframes fadein { from { opacity: 0; } }
 
 /* numbers + recommendations (same numbers as the phone pick page) */
@@ -180,7 +181,7 @@ table.stat th { color: var(--dim); font-weight: 600; } table.stat td.n { text-al
 .row2 { display: flex; gap: 2vmin; flex-wrap: wrap; justify-content: center; }
 .qdot { position: fixed; left: 6px; bottom: 6px; width: 14px; height: 14px; border-radius: 50%; background: #4a4256; z-index: 50; touch-action: none; }
 .qdot.on { background: #c98a2e; } .qdot.flash { box-shadow: 0 0 0 10px rgba(255, 212, 121, .4); }
-.thanks-qr { width: clamp(150px, 22vmin, 240px); background: #fff; border-radius: 14px; padding: 8px; } .thanks-qr svg { display: block; width: 100%; height: auto; }
+.thanks-qr { width: clamp(200px, 36vmin, 400px); background: #fff; border-radius: 14px; padding: 8px; } .thanks-qr svg { display: block; width: 100%; height: auto; }
 @media (prefers-reduced-motion: reduce) { .endpic .lift { animation: none; } }
 /* standby (2026-11-11, photos from a 4:3 screen): the "MoHeat Evo · touch to start" copy is a compact band at the very bottom (it sat on the
    lantern character's face); on screens narrower than 3:2 the whole cover is shown from the TOP, so the band sits in the free space below it */

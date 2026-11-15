@@ -18,6 +18,7 @@
         { h: '每位访客', steps: [
           '访客点 Start，或点排队时用手机选好的**号码**，戴上**降噪入耳式耳机**（L 左 R 右），自己做左右和音量测试。',
           '屏幕出现「声音没问题？」→ 向访客确认 → 点 **继续（工作人员）**。',
+          '戴之前**请访客把头发别到耳后、露出耳朵**（隔着头发感觉不到冷热）。',
           '**把大的 MoHeat Evo 头戴设备戴在入耳式耳机外面** → 点 **继续** → 左暖、右暖、左凉、右凉各 2 秒。',
           '屏幕出现「两边都感觉到了？」→ 向访客确认 → 点 **继续**。',
           '访客自己完成：暖、凉校准（快要不舒服时按 STOP）→ 焰、小雪试听（太弱 / 刚好 / 太强）→ **一个完整的 Demo**（从头到尾）。',
@@ -54,6 +55,7 @@
         { h: 'お客様ごとの流れ', steps: [
           'お客様が Start、または並んでいる間にスマホで選んだ**番号**をタップ。**ノイズキャンセリングイヤホン**（L が左、R が右）を着けて、左右と音量のテストをご自身で行います。',
           '「音は大丈夫ですか？」と表示されたら、お客様に確認して **続ける（スタッフ）** をタップ。',
+          '装着の前に、**髪を耳にかけて耳を出してもらう**（髪の上からだと温冷を感じません）。',
           '**イヤホンの上から、大きな MoHeat Evo をお客様に装着** → **続ける** → 左温・右温・左冷・右冷を各 2 秒出力します。',
           '「左右で温かさと冷たさを感じましたか？」と表示されたら、お客様に確認して **続ける** をタップ。',
           'ここからはお客様ご自身で：温・冷の強さ調整（少しつらいと感じたら STOP）→ 焰と小雪の試聴（弱すぎる／ちょうどいい／強すぎる）→ **デモを 1 本、最後まで**。',
@@ -90,6 +92,7 @@
         { h: 'Each visitor', steps: [
           'The visitor taps Start, or the **number** they picked on their phone in the queue, puts in the **noise-cancelling earbuds** (L left, R right) and does the left / right and volume test.',
           '“Sound OK?” appears → check with the visitor → tap **Continue (staff)**.',
+          'Before it goes on, **ask the visitor to tuck their hair behind their ears** (warmth and coolness can’t be felt through hair).',
           '**Place the big MoHeat Evo headset over the earbuds** → **Continue** → left warm, right warm, left cool, right cool, 2 s each.',
           '“Felt warm and cool on both sides?” appears → check with the visitor → tap **Continue**.',
           'The visitor does the rest: warm and cool calibration (STOP when almost uncomfortable) → Homura and Koyuki samples (too weak / just right / too strong) → **one complete demo**, start to end.',
@@ -102,7 +105,7 @@
         ] },
         { h: 'Troubleshooting', faq: [
           ['No sound', 'Is the output the earbuds? → system volume → the volume slider bottom right'],
-          ['Nothing felt in the output check', 'MoHeat Evo sitting squarely over both ears? → dot green? → panel Connect → “Something’s wrong” → “Check again”'],
+          ['Nothing felt in the output check', 'Hair behind the ears (skin showing)? → MoHeat Evo sitting squarely over both ears? → dot green? → panel Connect → “Something’s wrong” → “Check again”'],
           ['Too hot / cold, stop now', 'Tap **■ STOP** top right; during calibration tap anywhere. Then lower Warm cap / Cool cap in the panel'],
           ['Big “MoHeat Evo disconnected” alert', 'Plug it back in: it reconnects in a few seconds; otherwise panel Connect'],
           ['Frozen picture', 'Reload (`⌘R` / `F5`); if that fails, close the browser and open the URL again'],

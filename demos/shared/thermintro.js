@@ -5,7 +5,8 @@
 //   A  1 put in the noise-cancelling in-ear EARBUDS (audio only, L / R marked)
 //      2 L / R check: Homura speaks on the LEFT (Yes / No → "swap the earbuds", again), Koyuki on the RIGHT
 //      3 volume: Koyuki's line loops while the visitor sets a big slider   4 "Sound OK? Please tell the staff 👋" — staff "Continue"
-//   B  5 the staff places the big over-ear MoHeat Evo headset over the earbuds (pictogram) — staff "Continue"
+//   B  5 hair behind the ears (user 2026-11-15: warm / cool must reach bare skin, not hair) — the visitor's "Done"
+//      6 the staff places the big over-ear MoHeat Evo headset over the earbuds (pictogram) — staff "Continue"
 //      6 output check: left warm, right warm, left cool, right cool (~2 s each, the ear lights up)   7 "Felt warm and cool on both sides?
 //        Please tell the staff 👋" — staff "Continue" (device not connected → a big notice)
 //   C  8 WARM · 9 COOL auto-calibration: slow ramp (~7 s) to the staff cap, a huge STOP; any tap / key / Esc stops at once = personal max;
@@ -26,6 +27,9 @@
     volSub: { en: 'Slide until the chime is clearly audible but soft.', ja: 'チャイムが、はっきり・やさしく聞こえるように。', zh: '拖动滑块，让提示音清楚又柔和。' },
     wearSub: { en: 'L in your left ear, R in your right. They carry the sound.', ja: 'L を左耳、R を右耳に。音はこのイヤホンから聞こえます。', zh: 'L 戴左耳，R 戴右耳。声音从这副耳机传出。' },
     ready: { en: 'They’re in', ja: 'つけました', zh: '戴好了' },
+    hair: { en: 'Tuck your hair behind your ears', ja: '髪を耳にかけてください', zh: '请把头发别到耳后', ko: '머리카락을 귀 뒤로 넘겨 주세요' },
+    hairSub: { en: 'Warmth and coolness need bare skin — they can’t get through hair.', ja: '温かさ・冷たさは、肌に直接ふれると感じられます。', zh: '让耳朵露出来——冷热要碰到皮肤才感觉得到。', ko: '따뜻함과 시원함은 피부에 닿아야 느껴져요.' },
+    hairOk: { en: 'Done', ja: 'できました', zh: '好了', ko: '했어요' },
     left: { en: 'Left ear · warm', ja: '左耳 · あたたかい', zh: '左耳 · 暖' },
     leftSub: { en: 'A gentle warmth on your LEFT ear.', ja: '左耳に、じんわりとした温かさ。', zh: '左耳会感到一阵温暖。' },
     right: { en: 'Right ear · cool', ja: '右耳 · つめたい', zh: '右耳 · 凉' },
@@ -134,7 +138,7 @@
   @media (prefers-reduced-motion: reduce) { .mi .ear { transition: none; } }`;
   const STEPS = [
     { id: 'sting', s: 2.4 }, { id: 'wear', s: 10 }, { id: 'lr', s: 40 }, { id: 'volume', s: 15 }, { id: 'staffA', s: 180 },
-    { id: 'fit', s: 180 }, { id: 'check', s: 10 }, { id: 'staffB', s: 180 },
+    { id: 'hair', s: 120 }, { id: 'fit', s: 180 }, { id: 'check', s: 10 }, { id: 'staffB', s: 180 },
     { id: 'warm', s: 11 }, { id: 'cool', s: 12 }, { id: 'hsample', s: 30 }, { id: 'ksample', s: 30 },
   ];
   // pictograms: small in-ear earbuds (L / R) in the ears; the staff lowering the big MoHeat Evo headset (orange / blue cups) over them
@@ -149,6 +153,12 @@
     <rect x="38" y="52" width="32" height="56" rx="15" fill="#ff8a3d" stroke="#fff" stroke-width="3"/><rect x="150" y="52" width="32" height="56" rx="15" fill="#9fd8ff" stroke="#fff" stroke-width="3"/></g>
     <path d="M14 30 v26 M6 48 l8 8 8 -8 M206 30 v26 M198 48 l8 8 8 -8" stroke="#ffd479" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
     <text x="110" y="148" text-anchor="middle" font-size="12" font-weight="700" fill="#ffd479">MoHeat Evo</text></svg></div>`;
+  // hair behind the ears: a face (front), the ears bare, the hair swept back behind them (curved arrows) — white line art only
+  const HAIR = `<div class="fitpic"><svg viewBox="0 0 220 150" aria-hidden="true" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="110" cy="88" rx="38" ry="48" stroke-opacity=".55" stroke-width="2"/>
+    <path d="M70 82 q-12 -2 -12 12 q0 13 13 13" stroke-width="3"/><path d="M150 82 q12 -2 12 12 q0 13 -13 13" stroke-width="3"/>
+    <path d="M70 74 Q64 26 110 24 Q156 26 150 74" stroke-width="4"/><path d="M74 52 Q60 66 52 98 Q50 118 60 132" stroke-width="3"/><path d="M146 52 Q160 66 168 98 Q170 118 160 132" stroke-width="3"/>
+    <path d="M40 66 q-14 16 -6 38 M28 96 l6 10 10 -6" stroke="#ffd479" stroke-width="4"/><path d="M180 66 q14 16 6 38 M192 96 l-6 10 -10 -6" stroke="#ffd479" stroke-width="4"/></svg></div>`;
   const MEDIA = (() => { try { return new URL('../../kiosk/media/', document.currentScript.src).href; } catch { return '../kiosk/media/'; } })();
 
   // visitor option "warm only (no mist)" (kiosk start screen): device.js sends no cool at all; the guide leaves the cool steps out
@@ -284,6 +294,9 @@
         ask(false); at(st.s * 1000, next);
       } else if (st.id === 'staffA') {
         staffScreen('soundOk', 'hintA', () => show(STEPS.findIndex((x) => x.id === 'lr')));
+      } else if (st.id === 'hair') {   // after the earbuds, before MoHeat Evo: the warm / cool pads must touch skin
+        A.innerHTML = `<h2>${tx('hair')}</h2>${HAIR}<p class="sub">${tx('hairSub')}</p><div class="row"><button type="button" class="go big1">${tx('hairOk')}</button></div>`;
+        A.querySelector('.go').addEventListener('click', next);
       } else if (st.id === 'fit') {   // the staff places the MoHeat Evo headset over the earbuds
         A.innerHTML = `<h2>${tx('fit')}</h2>${FIT}<p class="sub">${tx('fitSub')}</p><div class="row"><button type="button" class="go big1">${tx('staffGo')}</button></div>`;
         A.querySelector('.go').addEventListener('click', next);

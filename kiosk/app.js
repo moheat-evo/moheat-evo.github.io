@@ -15,7 +15,7 @@
     document.documentElement.lang = l; paint(); intro?.repaint(); };
   const T = {
     tag: { en: 'Feel warm and cool on each ear — with sound in 3D.', ja: '立体音響とともに、左右の耳で温かさと冷たさを。', zh: '立体声的同时，左右耳感受冷与热。' },
-    p1: { en: 'Earbuds, then MoHeat Evo', ja: 'イヤホン → MoHeat Evo', zh: '入耳式耳机 → MoHeat Evo' }, p2: { en: 'Feel warm & cool', ja: '温かい・冷たいを感じる', zh: '感受冷与热' },
+    p1: { en: 'Earbuds → hair behind ears → MoHeat Evo', ja: 'イヤホン → 髪を耳にかける → MoHeat Evo', zh: '入耳式耳机 → 头发别到耳后 → MoHeat Evo', ko: '이어폰 → 머리는 귀 뒤로 → MoHeat Evo' }, p2: { en: 'Feel warm & cool', ja: '温かい・冷たいを感じる', zh: '感受冷与热' },
     p3: { en: 'Pick a story', ja: '物語を選ぶ', zh: '选一个故事' },
     rec: { en: 'Try these first', ja: 'まずはこちら', zh: '推荐先体验' }, more: { en: 'More stories →', ja: 'ほかの物語 →', zh: '更多故事 →' },
     hygiene: { en: 'Earbuds and ear pads cleaned for every visitor · disposable covers available', ja: 'イヤホンとイヤーパッドは毎回消毒 · 使い捨てカバーあります', zh: '耳机和耳罩每位访客消毒 · 可提供一次性耳罩套' },
@@ -37,6 +37,7 @@
     comment: { en: 'One line (optional)', ja: 'ひとこと（任意）', zh: '一句话（可选）' },
     done: { en: 'Done', ja: '送信', zh: '完成' }, skip: { en: 'Skip', ja: 'スキップ', zh: '跳过' },
     scan: { en: 'Scan to take home what you just experienced', ja: 'スキャンして、いまの体験をおみやげに', zh: '扫码带走刚才的体验小结' },
+    contact: { en: 'Any questions? Scan to get in touch.', ja: '気になることがあれば、QRコードからお気軽にご連絡ください。', zh: '有问题？扫码就能联系我，随时欢迎。', ko: '궁금한 점이 있나요? QR 코드로 편하게 연락 주세요.' },
     nodata: { en: 'No personal data is collected.', ja: '個人情報は集めません。', zh: '不收集任何个人信息。' },
     news: { en: 'Product news? (optional, your choice)', ja: '製品ニュース（任意）', zh: '产品消息？（可选）' },
     lost: { en: 'MoHeat Evo disconnected', ja: 'MoHeat Evo の接続が切れました', zh: 'MoHeat Evo 已断开' }, bat: { en: 'MoHeat Evo battery low', ja: 'MoHeat Evo の電池が少なくなっています', zh: 'MoHeat Evo 电量低' },
@@ -51,6 +52,7 @@
     touch: { en: 'Touch to start · タッチしてスタート · 点击开始', ja: 'Touch to start · タッチしてスタート · 点击开始', zh: 'Touch to start · タッチしてスタート · 点击开始' },
   };
   const t = (k) => (T[k] && (T[k][lang()] || T[k].en)) || '';
+  const CONTACT = 'https://moheat-evo.github.io/moheat-evo-links.html';   // the after-survey QR: how to reach the author
   function paint() {
     $$('[data-t]').forEach((e) => { e.textContent = t(e.dataset.t); });
     $('#startVisit').textContent = t('start'); $('#skipIntro').textContent = t('skipIntro');
@@ -104,7 +106,10 @@
     try { sessionStorage.removeItem('moheat.kiosk.session'); } catch {} K.resetVisitor(); cfg = K.cfg(); document.documentElement.lang = lang(); paint(); }
   function reset(toAttract = false) { send('stop'); newVisitor(); go(toAttract ? 'attract' : 'welcome'); }
 
-  const volGet = () => { try { const v = JSON.parse(localStorage.getItem('moheat.volume')); return v == null ? .7 : Math.min(1, v > 1 ? v / 100 : +v); } catch { return .7; } };   // 0–1, shared with shell.js
+  // default volume 20 % (user 2026-11-15). Once per station: a saved value that is still the old booth default (30 %) moves to 20 %; any
+  // other saved value was chosen by someone and stays.
+  try { if (localStorage.getItem('moheat.volDef') !== '20') { const v = JSON.parse(localStorage.getItem('moheat.volume')); if (v != null && (Math.abs(+v - .3) < .001 || +v === 30)) localStorage.setItem('moheat.volume', '0.2'); localStorage.setItem('moheat.volDef', '20'); } } catch {}
+  const volGet = () => { try { const v = JSON.parse(localStorage.getItem('moheat.volume')); return v == null ? .2 : Math.min(1, v > 1 ? v / 100 : +v); } catch { return .2; } };   // 0–1, shared with shell.js
   const volSet = (v) => { try { localStorage.setItem('moheat.volume', JSON.stringify(Math.round(v * 100) / 100)); } catch {} };
   // welcome → intro → menu
   let intro = null;
@@ -222,8 +227,8 @@
     if (carded) return; carded = true; clearTimeout(sceneT);
     const v = K.visit.get() || {}, r = { ...answer, comment: $('#comment').value.trim() };
     if (v.dir) K.stats.card(v.dir, save ? r : null);
-    $('.card-wrap').hidden = true; $('.q-thanks').hidden = false; qr($('.thanks-qr'), summaryUrl(v));   // thank-you + the take-home QR, then the next visitor
-    const done = () => { clearTimeout(tq); $('.q-thanks').removeEventListener('click', done); reset(); }, tq = setTimeout(done, 9000); $('.q-thanks').addEventListener('click', done);
+    $('.card-wrap').hidden = true; $('.q-thanks').hidden = false; qr($('.thanks-qr'), CONTACT);   // thank-you + a contact QR (the links page: email, LinkedIn, Instagram; user 2026-11-15), then the next visitor
+    const done = () => { clearTimeout(tq); $('.q-thanks').removeEventListener('click', done); reset(); }, tq = setTimeout(done, 20000);   /* time to take out a phone and scan */ $('.q-thanks').addEventListener('click', done);
   }
   $('#cardBack').addEventListener('click', prevQ);
   $('#cardSkip').addEventListener('click', () => nextQ());

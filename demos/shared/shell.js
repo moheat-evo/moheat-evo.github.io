@@ -563,7 +563,7 @@
 
   // ---------------------------------------------------------------- volume (one master for Web Audio + <audio>/<video>; ⚙ / bar slider, kiosk)
   // the demo's own levels stay as they are: a media element's volume becomes (what the demo set) × master; Web Audio gets one master gain
-  let vol = LS.get('volume', 1);
+  let vol = LS.get('volume', .2);   // a first visit starts at 20 % (user 2026-11-15); a saved choice is kept
   const vdesc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'volume'), want = new WeakMap(), clamp01 = (x) => Math.max(0, Math.min(1, x));
   if (vdesc && !EXPORT) Object.defineProperty(HTMLMediaElement.prototype, 'volume', { configurable: true,
     get() { return want.has(this) ? want.get(this) : vdesc.get.call(this); }, set(v) { want.set(this, +v); vdesc.set.call(this, clamp01(+v * vol)); } });

@@ -139,7 +139,7 @@
     const c = cfg(); stopDevice();
     try { localStorage.removeItem('moheat.warmOnly'); } catch {}   // "warm only (no mist)" is one visitor's choice
     LSs('moheat.mode', 'interactive'); LSs('moheat.heat', true); LSs('moheat.intensity', 100); LSs('moheat.warmScale', c.startWarm / 100); LSs('moheat.coolScale', c.startCool / 100); LSs('moheat.subs', 'm'); LSs('moheat.reduce', false);
-    LSs('moheat.volume', .7);   // 0–1, the same scale as shell.js
+    LSs('moheat.volume', .2);   // 0–1, the same scale as shell.js — each visitor starts at 20 % (user 2026-11-15)
     try { localStorage.setItem('moheat.guide', 'done'); } catch {}   // the kiosk intro replaces the page tour
     SSs('moheat.kiosk.visit', null); SSs('moheat.kiosk.level', null);
     try { if (c.lang && c.lang !== 'en') sessionStorage.setItem('moheat.sublang', c.lang); else sessionStorage.removeItem('moheat.sublang'); sessionStorage.removeItem('moheat.voicelang'); } catch {}   // the voice language is per visitor too
@@ -186,18 +186,54 @@
     zh: '下一位体验前，请用酒精棉擦拭耳机（耳垫和头梁）', ko: '다음 분 전에 알코올 솜으로 헤드폰(이어패드·밴드)을 닦아 주세요' }, WB = { ja: '拭きました', en: 'Done', zh: '已擦拭', ko: '닦았어요' }, BOTH = { ja: 'どちらも済みました', en: 'Both done', zh: '都完成了', ko: '둘 다 했어요' };
   const wipeDue = () => { try { return !!cfg().hygiene && localStorage.getItem(WIPE_K) === '1'; } catch { return false; } };
   const wipeSet = (on) => { try { on ? localStorage.setItem(WIPE_K, '1') : localStorage.removeItem(WIPE_K); } catch {} mistPaint(); };
+  // cool test after a refill (user 2026-11-15): after 補充しました — and from the open / resume checklists (MoHeatKiosk.coolTest()) — the
+  // staff wear the headset and run a short cool pulse, left then right (~3 s each, at the staff's own cool cap). Not cool → turn the cotton
+  // wick a little and test again; two misses → offer the cooling-fault mode (cfg.coolFault: warm only for every visitor).
+  const CT = {
+    ja: { h: 'ヘッドホンをつけて、冷たさをテスト', go: '冷たさテスト ▶', run: '左 → 右 の順に、約 3 秒ずつ冷たくなります…', q: '冷たさを感じましたか？', ok: '冷たかった', ng: '冷たくない',
+      hint: '綿棒を少し回して角度を変えてから、もう一度テストしてください。', again: 'もう一度テスト ▶', fault: '2 回とも冷たくなければ、冷却故障モードにしてください（温かさだけで体験を続けられます）。',
+      faultGo: '冷却故障モードにする', later: 'あとで', nodev: 'ヘッドセットが未接続です。接続してからテストしてください。', set: '冷却故障モードにしました' },
+    en: { h: 'Put on the headset and test the cooling', go: 'Test cooling ▶', run: 'Left, then right — about 3 s each…', q: 'Did you feel it cool?', ok: 'Yes, cool', ng: 'Not cool',
+      hint: 'Turn the cotton wick a little to change its angle, then test again.', again: 'Test again ▶', fault: 'Still not cool after two tries? Switch on the cooling-fault mode (visitors carry on with warmth only).',
+      faultGo: 'Cooling-fault mode on', later: 'Later', nodev: 'The headset is not connected. Connect it, then test.', set: 'Cooling-fault mode is on' },
+    zh: { h: '戴上耳机，测试一下凉感', go: '测试凉感 ▶', run: '先左后右，各约 3 秒……', q: '感觉到凉了吗？', ok: '凉了', ng: '不凉',
+      hint: '把棉棒稍微转一下、换个角度，再测一次。', again: '再测一次 ▶', fault: '两次都不凉的话，请打开冷却故障模式（访客可以只用温热继续体验）。',
+      faultGo: '打开冷却故障模式', later: '稍后', nodev: '头戴设备未连接。请连接后再测试。', set: '已打开冷却故障模式' },
+    ko: { h: '헤드폰을 쓰고 시원함을 테스트해 주세요', go: '시원함 테스트 ▶', run: '왼쪽, 그다음 오른쪽 — 각각 약 3초…', q: '시원함이 느껴졌나요?', ok: '시원했어요', ng: '안 시원해요',
+      hint: '면봉을 조금 돌려 각도를 바꾼 뒤 다시 테스트해 주세요.', again: '다시 테스트 ▶', fault: '두 번 다 시원하지 않으면 냉각 고장 모드를 켜 주세요 (따뜻함만으로 체험을 이어 갈 수 있어요).',
+      faultGo: '냉각 고장 모드 켜기', later: '나중에', nodev: '헤드셋이 연결되지 않았어요. 연결한 뒤 테스트해 주세요.', set: '냉각 고장 모드를 켰어요' } };
+  let ct = null;   // { phase: 'start' | 'run' | 'ask' | 'hint' | 'fault' | 'nodev' | 'set', fails, timers }
+  const coolTest = () => { ct = { phase: 'start', fails: 0, timers: [] }; mistPaint(); };
+  const ctEnd = () => { if (ct) ct.timers.forEach(clearTimeout); ct = null; mistPaint(); };
+  function ctRun() {
+    const dev = window.MoHeatDevice?.current; if (!dev || !dev.isConnected?.()) { ct.phase = 'nodev'; return mistPaint(); }
+    const k = Math.max(.2, Math.min(1, (+cfg().capCool || 100) / 100)), pwm = Math.round(35 + 45 * k), send = (l) => { try { dev.send(l); } catch {} };
+    ct.phase = 'run'; mistPaint(); send(`LC${pwm} RH0`);
+    ct.timers.push(setTimeout(() => send(`LH0 RC${pwm}`), 3000), setTimeout(() => { send('stop'); if (ct) { ct.phase = 'ask'; mistPaint(); } }, 6000));
+  }
   let mistEl = null;
   function mistPaint() {
     if (!document.body) return; const m = mistGet(), w = wipeDue();
-    if (!m.due && !w) { if (mistEl) mistEl.hidden = true; return; }
+    if (!m.due && !w && !ct) { if (mistEl) mistEl.hidden = true; return; }
     if (!mistEl) { const st = document.createElement('style'); st.textContent = `
       .mk-mist { position: fixed; z-index: 2147482998; left: 10px; top: 86px; width: min(400px, 80vw); padding: 14px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,.22); background: rgba(24,20,30,.82);
         -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: #f4efe6; font: 600 17px/1.4 Inter, "Noto Sans JP", "PingFang SC", "Apple SD Gothic Neo", sans-serif; box-shadow: 0 8px 28px rgba(0,0,0,.4); }
       .mk-mist[hidden] { display: none; } .mk-mist p { margin: 0 0 4px; } .mk-mist p + p { margin-top: 10px; } .mk-mist small { display: block; margin-bottom: 4px; opacity: .65; font-size: 13px; font-weight: 500; }
-      .mk-mist button { width: 100%; min-height: 64px; margin-top: 8px; border-radius: 999px; border: 0; background: #f4efe6; color: #161214; font: 700 20px/1 Inter, "Noto Sans JP", "PingFang SC", sans-serif; cursor: pointer; touch-action: manipulation; }`;
+      .mk-mist button { width: 100%; min-height: 64px; margin-top: 8px; border-radius: 999px; border: 0; background: #f4efe6; color: #161214; font: 700 20px/1 Inter, "Noto Sans JP", "PingFang SC", sans-serif; cursor: pointer; touch-action: manipulation; }
+      .mk-mist .mk-row { display: flex; gap: 8px; } .mk-mist .mk-row button { flex: 1; } .mk-mist button.alt { background: transparent; color: #f4efe6; border: 1.5px solid rgba(244,239,230,.6); }`;
       document.head.appendChild(st); mistEl = document.createElement('div'); mistEl.className = 'mk-mist'; mistEl.setAttribute('role', 'status'); document.body.appendChild(mistEl);
-      mistEl.addEventListener('click', (e) => { e.stopPropagation(); if (!e.target.closest('button')) return; if (mistGet().due) mistSet({ n: 0, due: false }); wipeSet(false); }); }
+      mistEl.addEventListener('click', (e) => { e.stopPropagation(); const btn = e.target.closest('button'); if (!btn) return; const act = btn.dataset.a;
+        if (act === 'go') return ctRun();
+        if (act === 'ok' || act === 'later') return ctEnd();
+        if (act === 'ng') { ct.fails++; ct.phase = ct.fails >= 2 ? 'fault' : 'hint'; return mistPaint(); }
+        if (act === 'fault') { setCfg({ coolFault: true }); ct.phase = 'set'; mistPaint(); ct.timers.push(setTimeout(ctEnd, 2500)); return; }
+        const refilled = mistGet().due; if (refilled) mistSet({ n: 0, due: false }); wipeSet(false); if (refilled) coolTest(); }); }
     let l = 'ja'; try { l = localStorage.getItem('moheat.staff.lang') || 'ja'; } catch {} if (!MTX[l]) l = 'ja';
+    if (ct) { const T = CT[l] || CT.ja, E = CT.en, sub = (k) => (l !== 'en' ? `<small>${E[k]}</small>` : ''), btn = (a, k, alt) => `<button type="button" data-a="${a}"${alt ? ' class="alt"' : ''}>${T[k]}</button>`;
+      const body = { start: `<p>${T.h}</p>${sub('h')}${btn('go', 'go')}`, run: `<p>${T.run}</p>${sub('run')}`, ask: `<p>${T.q}</p>${sub('q')}<div class="mk-row">${btn('ok', 'ok')}${btn('ng', 'ng', 1)}</div>`,
+        hint: `<p>${T.hint}</p>${sub('hint')}${btn('go', 'again')}`, fault: `<p>${T.fault}</p>${sub('fault')}<div class="mk-row">${btn('fault', 'faultGo')}${btn('later', 'later', 1)}</div>`,
+        nodev: `<p>${T.nodev}</p>${sub('nodev')}<div class="mk-row">${btn('go', 'go')}${btn('later', 'later', 1)}</div>`, set: `<p>${T.set}</p>` }[ct.phase];
+      mistEl.innerHTML = body; mistEl.dataset.items = 'cooltest ' + ct.phase; mistEl.hidden = false; return; }
     const n = mistEvery(), en = l !== 'en', items = [...(w ? [[WTX[l], WTX.en]] : []), ...(m.due ? [[MTX[l].t(n), MTX.en.t(n)]] : [])];
     mistEl.innerHTML = items.map(([a, b]) => `<p>${a}</p>${en ? `<small>${b}</small>` : ''}`).join('') + `<button type="button" class="mk-mist-ok">${items.length > 1 ? BOTH[l] : w ? WB[l] : MTX[l].b}</button>`;
     mistEl.dataset.items = (w ? 'wipe ' : '') + (m.due ? 'mist' : ''); mistEl.hidden = false;
@@ -266,7 +302,7 @@
       set.prepend(r); };
     new MutationObserver(woRow).observe(document.body, { childList: true, subtree: true });
   }
-  const K = window.MoHeatKiosk = { controls, mistCount, mistPaint, mistEvery, wipeSet, idb, currency, bands, splitBands, BANDS, SCENES, on: flag, cfg, setCfg, stats, resetVisitor, enter, exit, visit, day, DEF, stopDevice,
+  const K = window.MoHeatKiosk = { controls, mistCount, mistPaint, mistEvery, coolTest, wipeSet, idb, currency, bands, splitBands, BANDS, SCENES, on: flag, cfg, setCfg, stats, resetVisitor, enter, exit, visit, day, DEF, stopDevice,
     offered, num, top3, pickUrl, dnum, post, thermalOf, scales, setScales, scaleLine, get queueOn() { return Date.now() - queueSeen < 6000; } };
 
   // ================================================================ demo pages (kiosk mode on)
@@ -289,7 +325,7 @@
   // ---------------------------------------------------------------- volume for the whole page (media elements + Web Audio): installed
   // before the demo builds its audio graph (graphs are built on Start), every connection to the speakers goes through one gain per context
   // 'moheat.volume' is shared with shell.js: 0–1 (older kiosk builds wrote 0–100)
-  const vol0 = +LSg('moheat.volume', .7) || 0; let vol = Math.max(0, Math.min(1, vol0 > 1 ? vol0 / 100 : vol0));
+  const vol0 = +LSg('moheat.volume', .2) || 0; let vol = Math.max(0, Math.min(1, vol0 > 1 ? vol0 / 100 : vol0));
   const vgains = new Map();
   // MoHeatShell.setVolume = the shell applies the level (no second gain stage here). The big slider stays until UI v2's control bar is really on
   // the page (.u2 volume control): having the API does not mean the visitor has a control (REQUIREMENTS §3)
