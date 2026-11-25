@@ -17,6 +17,8 @@
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center; background: var(--bg); color: var(--ink); font-family: Inter, "Helvetica Neue", system-ui, sans-serif; }
 main { width: 100%; max-width: 460px; padding: max(28px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom)); }
+.head { display: flex; align-items: center; gap: 18px; }
+.me { display: block; width: 104px; height: 104px; border-radius: 50%; object-fit: cover; flex: none; box-shadow: 0 0 0 2px #0b0b0c, 0 0 0 3.5px #3a3a40; }
 .bar { height: 3px; width: 72px; border-radius: 2px; background: linear-gradient(90deg, var(--warm), var(--cool)); }
 h1 { margin: 22px 0 0; font-family: "Space Grotesk", Inter, sans-serif; font-weight: 700; font-size: clamp(38px, 11vw, 52px); line-height: 1; letter-spacing: -.02em; }
 h1 small { display: block; margin-top: 10px; font-family: Inter, "PingFang SC", "Hiragino Sans", sans-serif; font-weight: 500; font-size: 17px; letter-spacing: 0; color: var(--soft); }
@@ -37,7 +39,7 @@ nav i { flex: none; font-style: normal; color: var(--soft); font-size: 18px; }
 </head>
 <body>
 <main>
-  <div class="bar" aria-hidden="true"></div>
+  <img class="me" src="assets/images/links/portrait.webp" width="320" height="320" alt="Photo of XU Jiayi" />
   <h1>XU Jiayi<span class="phd">, PhD</span><small>許 佳禕 · 许佳祎</small></h1>
   <p class="who"><b>Project Assistant Professor</b><br>The University of Tokyo<br>Inami–Monnai Lab, RCAST<br>Creator of MoHeat Evo</p>
   <nav aria-label="Links">
